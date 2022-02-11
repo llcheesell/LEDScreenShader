@@ -8,9 +8,6 @@
 Most of the functionality is currently being developed with Shader Graph, and URP and HDRP is the target render pipeline.<br>
 The built-in shader is implemented only the minimum functionality.
 
-<img width="467" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://user-images.githubusercontent.com/113725/153626690-deef6682-13d5-4086-8b39-dec24587deeb.png">
-
-* Grid parameters are currently disabled due to quality issue.
 * Includes detailed LED panel textures.
 
 
@@ -18,14 +15,11 @@ The built-in shader is implemented only the minimum functionality.
 detailed version
 
 <img src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/de99bb559a84878e447cbc1e7014cee4.gif">
-simple version
-
-<img width="577" alt="Screen Shot 2022-02-10 at 13 57 37" src="https://user-images.githubusercontent.com/113725/153345784-378ab0e4-3e55-4e2c-8149-d437d9c11def.png">
 
 <img width="640" alt="Screen Shot 2022-02-10 at 13 59" src="https://user-images.githubusercontent.com/113725/153346605-d261c567-1d2c-4da7-9944-623f21abde96.png">
 
 Distant Fader for Moire prevention
-<img src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/DistantFader2.gif">
+<img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/DistantFader2.gif">
 
 ## Install
 Please import via UPM (Unity Package Manager).<br>
@@ -33,7 +27,7 @@ Package Managerよりインストールしてください。
 
 Package Manager > Add Package from Git URL > paste the URL below and import.
 ```
-https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.4
+https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.5
 ```
 
 or you can import unitypackage manually.
@@ -42,6 +36,9 @@ Please check [Release v0.0.5](https://github.com/llcheesell/LEDScreenShader/rele
 
 ## Usage
 
+<img width="300" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://user-images.githubusercontent.com/113725/153626690-deef6682-13d5-4086-8b39-dec24587deeb.png">
+
+* Grid parameters are currently disabled due to quality issue.
 * InputVideo<br>
 Apply the texture you want to project to the panel. You can put a video via RenderTexture.<br>
 パネルに投影するテクスチャを適用します。
