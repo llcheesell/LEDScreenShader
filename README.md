@@ -86,3 +86,6 @@ Preview Release is available at preview branch
 ```
 https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#preview
 ```
+
+## License
+[MIT](LICENSE.md)
