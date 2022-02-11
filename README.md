@@ -88,4 +88,4 @@ https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#p
 ```
 
 ## License
-[MIT](LICENSE.md)
+[MIT](LICENSE)
