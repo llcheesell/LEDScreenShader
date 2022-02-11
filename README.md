@@ -1,8 +1,9 @@
 # LEDScreenShader
 
-The shader of a realistic LED panels.
+The shader of a realistic LED panels for Universal and Built-in RP.
 
-Built-in shaders are included, but I'm currently focused on development with the Shader Graph.
+Most of the functionality is currently being developed with Shader Graph, and URP is the target render pipeline.
+The built-in shader is implemented only the minimum functionality.
 
 <img width="467" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://user-images.githubusercontent.com/113725/153626690-deef6682-13d5-4086-8b39-dec24587deeb.png">
 
@@ -20,13 +21,14 @@ simple version
 
 <img width="640" alt="Screen Shot 2022-02-10 at 13 59" src="https://user-images.githubusercontent.com/113725/153346605-d261c567-1d2c-4da7-9944-623f21abde96.png">
 
-Distant Fader
+Distant Fader for Moire prevention
 <img src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/DistantFader2.gif">
 
 ## Install
-Please import via UPM (Unity Package Manager).
+Please import via UPM (Unity Package Manager).<br>
+Package Managerよりインストールしてください。
 
-Package Manager > Add Package from Git URL > paste below and import.
+Package Manager > Add Package from Git URL > paste the URL below and import.
 ```
 https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.4
 ```
@@ -77,6 +79,9 @@ Bloomポストエフェクトの併用を推奨。
 ## Roadmap
 * Moire prevention processing according to the distance from the camera (completed in v0.0.4)
 * Higher quality pixel textures ana materials (completed in v0.0.2)
+
+Let me know if you have any suggestions and problems.
+機能要望、問題など有りましたらllcheesellまでお知らせください。
 
 
 ## Preview Release
