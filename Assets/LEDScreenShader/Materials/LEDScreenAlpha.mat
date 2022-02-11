@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: LEDScreen
+  m_Name: LEDScreenAlpha
   m_Shader: {fileID: -6465566751694194690, guid: a185859e3279c244db019e90e25824d8, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
@@ -55,18 +55,21 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    m_Ints: []
     m_Floats:
+    - Vector1_04710da2add54fb687913d1bf5a6b7b2: 40
+    - Vector1_0e5521ea1d3b43c9b391f882dd386542: 0
     - Vector1_148355EB: 128
     - Vector1_1b4999dc50f64539ad7ba246a2467ec4: 0
     - Vector1_3ea4ac5985e045fe9bb1473433a925a9: 1
-    - Vector1_A78CEBC: 0.5
+    - Vector1_9587ac5421c44de1b677a4ce4f167768: 10
+    - Vector1_A78CEBC: 1
     - Vector1_CC37D8CB: 0.5
     - Vector1_D4BB5679: 1
     - Vector1_a1f9648bff084cf4959c672e512a732d: 8
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
+    - Color_941038397df743edb971942aa6a65b41: {r: 0.9150943, g: 0.9150943, b: 0.9150943, a: 0}
     - Color_B7810F92: {r: 0.8627451, g: 1.6, b: 4, a: 0}
     - Vector2_ae16db7065034506a055993c41bbe614: {r: 0, g: 0, b: 0, a: 0}
     - Vector2_ea01576358e3410993f3b88f3d7e3a6b: {r: 50, g: 50, b: 0, a: 0}
