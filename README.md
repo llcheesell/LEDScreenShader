@@ -76,6 +76,7 @@ The combination use of Bloom Post Processing is recommended.<br>
 Bloomポストエフェクトの併用を推奨。
 
 ## Roadmap
+* Tile and Offset for InputVideo
 * ~~Support HDRP~~ (completed in v0.0.5)
 * ~~Moire prevention processing according to the distance from the camera~~ (completed in v0.0.4)
 * ~~Higher quality pixel textures ana materials~~ (completed in v0.0.2)
