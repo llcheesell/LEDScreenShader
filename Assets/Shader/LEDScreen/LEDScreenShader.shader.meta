@@ -3,8 +3,9 @@ guid: 67fde91b781998e4c819c856f1077acb
 ShaderImporter:
   externalObjects: {}
   defaultTextures:
-  - _LedTexture: {fileID: 8400000, guid: 723e4ba63dbf14c7eb8220447f4df71b, type: 2}
-  - _RGB_channel: {fileID: 2800000, guid: 53f3d0b552b692845868a1a26579997e, type: 3}
+  - _RGB_channel: {fileID: 2800000, guid: 1131aa718f18abf459bf3ba2d1c632ef, type: 3}
+  - _LedTexture: {instanceID: 0}
+  - _texcoord: {instanceID: 0}
   nonModifiableTextures: []
   preprocessorOverride: 0
   userData: 
