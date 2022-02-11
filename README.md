@@ -4,7 +4,7 @@ The shader of a realistic LED panels.
 
 Built-in shaders are included, but I'm currently focused on development with the Shader Graph.
 
-<img width="454" alt="Screen Shot 2022-02-10 at 14 49 34" src="https://user-images.githubusercontent.com/113725/153345725-990ba8da-07cd-4d51-a9e0-4c4500b4ca18.png">
+<img width="467" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://user-images.githubusercontent.com/113725/153626690-deef6682-13d5-4086-8b39-dec24587deeb.png">
 
 * Grid parameters are currently not supported.
 * Includes detailed LED panel textures.
