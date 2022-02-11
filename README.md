@@ -11,7 +11,11 @@ Built-in shaders are included, but I'm currently focused on development with the
 
 
 ## Samples
-<img src="https://github.com/llcheesell/LEDScreenShader/tree/main/Docs/de99bb559a84878e447cbc1e7014cee4.gif">
+detailed version
+
+<img src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/de99bb559a84878e447cbc1e7014cee4.gif">
+simple version
+
 <img width="577" alt="Screen Shot 2022-02-10 at 13 57 37" src="https://user-images.githubusercontent.com/113725/153345784-378ab0e4-3e55-4e2c-8149-d437d9c11def.png">
 <img width="640" alt="Screen Shot 2022-02-10 at 13 59" src="https://user-images.githubusercontent.com/113725/153346605-d261c567-1d2c-4da7-9944-623f21abde96.png">
 
@@ -30,7 +34,7 @@ Please check [Release v0.0.3](https://github.com/llcheesell/LEDScreenShader/rele
 ## Note
 Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.
 
-<img src="https://github.com/llcheesell/LEDScreenShader/tree/main/Docs/linear.png">
+<img src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/linear.png">
 
 The combination use of Bloom Post Processing is recommended.
 
