@@ -63,6 +63,9 @@ DistantFadeによって明るさの変化が生じたときに、HDRカラーで
 *Grid parameters are currently disabled due to quality issue.*
 
 
+[Video Guide](https://www.youtube.com/watch?v=6b-_SwUf9jM)
+
+
 ## Note
 Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
 リニアカラースペースでの使用を推奨。
