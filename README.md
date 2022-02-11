@@ -30,7 +30,9 @@ Please check [Release v0.0.3](https://github.com/llcheesell/LEDScreenShader/rele
 ## Note
 Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.
 
-The use of Bloom Post Processing is recommended.
+<img src="https://github.com/llcheesell/LEDScreenShader/tree/main/Docs/linear.png">
+
+The combination use of Bloom Post Processing is recommended.
 
 ## Roadmap
 * Moire prevention processing according to the distance from the camera
