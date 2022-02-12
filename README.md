@@ -1,14 +1,14 @@
 # LEDScreenShader
 
-**The shader of a realistic LED panels for Scriptable and Built-in RP.**<br>
+**LEDScreenShader is a shader that draws realistic LED panels on Unity's Scriptable and Built-in render pipelines.**<br>
 
 <img width="640" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/promo.gif"><br>
-URP and HDRP is the target render pipeline, since it's developed with Shader Graph.<br>
-The built-in shader is implemented only the minimum functionality.
+Currently URP and HDRP is the target render pipeline since it's developed with Shader Graph.<br>
+The built-in shader is also included with minimum functionality implemented.
 
 
 ## Samples
-* Brightness control
+* HDR Brightness control
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/de99bb559a84878e447cbc1e7014cee4.gif">
 
 * Includes multiple LED panel textures
@@ -18,7 +18,7 @@ The built-in shader is implemented only the minimum functionality.
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/DistantFader2.gif">
 
 ## Install
-Please import via UPM (Unity Package Manager).<br>
+* Import the package via UPM (Unity Package Manager).<br>
 Package Managerよりインストールしてください。
 
 Package Manager > Add Package from Git URL > paste the URL below and import.
@@ -26,9 +26,8 @@ Package Manager > Add Package from Git URL > paste the URL below and import.
 https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.5
 ```
 
-or you can import unitypackage manually.
-
-Please check [Release v0.0.5](https://github.com/llcheesell/LEDScreenShader/releases/tag/v0.0.5) page.
+* or you can import the unitypackage manually<br>
+Unitypackage is available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.
 
 ## Usage
 
@@ -76,6 +75,7 @@ The combination use of Bloom Post Processing is recommended.<br>
 Bloomポストエフェクトの併用を推奨。
 
 ## Roadmap
+* Performance optimization disabling detailed textures along with distantFader
 * Tile and Offset for InputVideo
 * ~~Support HDRP~~ (completed in v0.0.5)
 * ~~Moire prevention processing according to the distance from the camera~~ (completed in v0.0.4)
