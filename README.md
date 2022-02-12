@@ -1,6 +1,7 @@
 # LEDScreenShader
 
 **LEDScreenShader is a shader that draws realistic LED panels on Unity's Scriptable and Built-in render pipelines.**<br>
+**LEDScreenShaderは高品質なLEDパネルを表現するシェーダーです。**<br>
 
 <img width="640" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/promo.gif"><br>
 Currently URP and HDRP is the target render pipeline since it's developed with Shader Graph.<br>
@@ -26,7 +27,8 @@ Package Manager > Add Package from Git URL > paste the URL below and import.
 https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.5
 ```
 
-* or you can manually import the unitypackage available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.
+* or you can manually import the unitypackage available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.<br>
+またはReleaseよりUnitypackageをインポートしてください。
 
 ## Usage
 
@@ -65,12 +67,11 @@ DistantFadeによって明るさの変化が生じたときに、HDRカラーで
 
 
 ## Note
-Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
-リニアカラースペースでの使用を推奨。
-
+* Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
+リニアカラースペースでの使用を推奨。<br>
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/linear.png">
 
-The combination use of Bloom Post Processing is recommended.<br>
+* The combination use of Bloom Post Processing is recommended.<br>
 Bloomポストエフェクトの併用を推奨。
 
 ## Roadmap
@@ -81,7 +82,7 @@ Bloomポストエフェクトの併用を推奨。
 * ~~Higher quality pixel textures ana materials~~ (completed in v0.0.2)
 
 Let me know if you have any suggestions and problems.<br>
-機能要望、問題など有りましたらllcheesellまでお知らせください。
+機能要望、提案などありましたら@llcheesellまでお知らせください。
 
 
 ## Preview Release
@@ -91,4 +92,5 @@ https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#p
 ```
 
 ## License
-[MIT](LICENSE)
+Under [MIT License](LICENSE)<br>
+*Credit, or notice of use is not required but much appreciated!*
