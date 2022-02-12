@@ -24,7 +24,7 @@ Package Managerよりインストールしてください。
 
 Package Manager > Add Package from Git URL > paste the URL below and import.
 ```
-https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.5
+https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.6
 ```
 
 * or you can manually import the unitypackage available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.<br>
@@ -77,6 +77,7 @@ Bloomポストエフェクトの併用を推奨。
 ## Roadmap
 * Performance optimization disabling detailed textures along with distantFader
 * Tile and Offset for InputVideo
+* ~~update Build-in Shader~~ (completed in v0.0.6)
 * ~~Support HDRP~~ (completed in v0.0.5)
 * ~~Moire prevention processing according to the distance from the camera~~ (completed in v0.0.4)
 * ~~Higher quality pixel textures ana materials~~ (completed in v0.0.2)
