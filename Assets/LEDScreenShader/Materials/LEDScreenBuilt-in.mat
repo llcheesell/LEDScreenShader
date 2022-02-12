@@ -102,9 +102,10 @@ Material:
     - Vector1_CC37D8CB: 0.5
     - Vector1_D4BB5679: 0.9
     - Vector1_a1f9648bff084cf4959c672e512a732d: 40
-    - _BrightnessIntensity: 80
-    - _DistantFadeEnd: 30
-    - _DistantFadeIntensity: 2
+    - _BrightnessIntensity: 8.1
+    - _DistantFadeEnd: 32
+    - _DistantFadeIntensity: 1
+    - _DistantFadeLength: 30
     - _DistantFadeStart: 10
     - _Intensity: 100
     - _TransAmbient: 0.2
