@@ -26,8 +26,7 @@ Package Manager > Add Package from Git URL > paste the URL below and import.
 https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.5
 ```
 
-* or you can import the unitypackage manually<br>
-Unitypackage is available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.
+* or you can manually import the unitypackage available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.
 
 ## Usage
 
