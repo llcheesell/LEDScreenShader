@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: LEDScreenDetailed
-  m_Shader: {fileID: -6465566751694194690, guid: a185859e3279c244db019e90e25824d8, type: 3}
+  m_Name: LEDScreenDetailedDHRP
+  m_Shader: {fileID: -6465566751694194690, guid: f0d55296239e8344eab92c664e58ee57, type: 3}
   m_ShaderKeywords: 
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -66,7 +66,7 @@ Material:
     - Vector1_A78CEBC: 1
     - Vector1_CC37D8CB: 0.3
     - Vector1_D4BB5679: 1
-    - Vector1_a1f9648bff084cf4959c672e512a732d: 39
+    - Vector1_a1f9648bff084cf4959c672e512a732d: 100
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
