@@ -291,6 +291,9 @@
         },
         {
             "m_Id": "9b4f3015b4f64640ac1a9c030a6531f2"
+        },
+        {
+            "m_Id": "84759463370848419614874a725fb6cd"
         }
     ],
     "m_GroupDatas": [
@@ -1420,6 +1423,9 @@
             },
             {
                 "m_Id": "69b99283e1a24e3ea748333c70fe8ec6"
+            },
+            {
+                "m_Id": "84759463370848419614874a725fb6cd"
             }
         ]
     },
@@ -5588,6 +5594,39 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.BlockNode",
+    "m_ObjectId": "84759463370848419614874a725fb6cd",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "SurfaceDescription.Specular",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": 0.0,
+            "y": 0.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "9684cc3f7982453fbe9d4067635c9c8a"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_SerializedDescriptor": "SurfaceDescription.Specular"
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "847b93f9b5c04a22810f910b591b22fc",
     "m_Id": 5,
@@ -6079,6 +6118,36 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.ColorRGBMaterialSlot",
+    "m_ObjectId": "9684cc3f7982453fbe9d4067635c9c8a",
+    "m_Id": 0,
+    "m_DisplayName": "Specular Color",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_ShaderOutputName": "Specular",
+    "m_StageCapability": 2,
+    "m_Value": {
+        "x": 0.5,
+        "y": 0.5,
+        "z": 0.5
+    },
+    "m_DefaultValue": {
+        "x": 0.0,
+        "y": 0.0,
+        "z": 0.0
+    },
+    "m_Labels": [],
+    "m_ColorMode": 0,
+    "m_DefaultColor": {
+        "r": 0.5,
+        "g": 0.5,
+        "b": 0.5,
+        "a": 1.0
+    }
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.DynamicValueMaterialSlot",
     "m_ObjectId": "96dfb98a62f3ab8da0c62c88c1048b5e",
     "m_Id": 0,
@@ -6367,7 +6436,7 @@
     "m_ActiveSubTarget": {
         "m_Id": "7f09926b0863459c9c0ca577823de5aa"
     },
-    "m_AllowMaterialOverride": false,
+    "m_AllowMaterialOverride": true,
     "m_SurfaceType": 1,
     "m_ZTestMode": 4,
     "m_ZWriteControl": 0,
