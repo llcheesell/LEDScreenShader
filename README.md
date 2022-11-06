@@ -64,6 +64,8 @@ DistantFadeによって明るさの変化が生じたときに、HDRカラーで
 
 
 ## Note
+* This shader includes [com.needle.shadergraph-markdown](https://github.com/needle-tools/shadergraph-markdown)'s markdown version of the shader interface. If you want to use clean UI version you need the package to be installed.
+
 * Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
 リニアカラースペースでの使用を推奨。<br>
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/linear.png">
@@ -76,7 +78,7 @@ Bloomポストエフェクトの併用を推奨。
 
 ## Roadmap
 * Performance optimization disabling detailed textures along with distantFader
-* Tile and Offset for InputVideo
+* ~~Tile and Offset for InputVideo~~ (completed in v0.1.0)
 * ~~update Build-in Shader~~ (completed in v0.0.6)
 * ~~Support HDRP~~ (completed in v0.0.5)
 * ~~Moire prevention processing according to the distance from the camera~~ (completed in v0.0.4)
