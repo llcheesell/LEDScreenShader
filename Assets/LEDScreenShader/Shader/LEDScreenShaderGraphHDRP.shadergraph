@@ -67,6 +67,9 @@
             "m_Id": "df3c327e6c97da8f8847ca32221c76ab"
         },
         {
+            "m_Id": "3c1c7815eaa440fc8089f4c3b68dbd56"
+        },
+        {
             "m_Id": "fd94dc1b72c44a51aad54bea2d5dfabb"
         },
         {
@@ -2995,7 +2998,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "31e51b3b4544472cab5d51c29722689f",
     "m_Id": 0,
-    "m_DisplayName": "IntensityMultiplier",
+    "m_DisplayName": "Intensity Multiplier",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -3343,6 +3346,24 @@
 
 {
     "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.BooleanShaderProperty",
+    "m_ObjectId": "3c1c7815eaa440fc8089f4c3b68dbd56",
+    "m_Guid": {
+        "m_GuidSerialized": "99bd4e47-3fa0-48db-a54b-7f7ead5ae163"
+    },
+    "m_Name": "## LED Panel Texture Tiling And Offset",
+    "m_DefaultReferenceName": "",
+    "m_OverrideReferenceName": "Boolean_3",
+    "m_GeneratePropertyBlock": true,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "m_Hidden": false,
+    "m_Value": false
+}
+
+{
+    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "3c26fe54abd54332889904518fbb7166",
     "m_Id": 1,
@@ -3650,7 +3671,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector4MaterialSlot",
     "m_ObjectId": "41a487c0853cb380b8ce8f664bd9b01e",
     "m_Id": 0,
-    "m_DisplayName": "InputColorize",
+    "m_DisplayName": "Input Colorize",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4427,7 +4448,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "5681a712ecd1eb8d93db30ef4d2c1a77",
     "m_Id": 0,
-    "m_DisplayName": "InputVideo",
+    "m_DisplayName": "Input Texture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4513,7 +4534,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "5b89a207b5bd48c488482101a04cc7d9",
     "m_Id": 0,
-    "m_DisplayName": "IntensityMultiplier",
+    "m_DisplayName": "Intensity Multiplier",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -5759,7 +5780,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "824eb4ad391a49f9acf7b860a6d737b4",
     "m_Id": 0,
-    "m_DisplayName": "InputColorizeIntensity",
+    "m_DisplayName": "Input Colorize Opacity",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -7539,7 +7560,7 @@
     "m_Guid": {
         "m_GuidSerialized": "d29e7934-5257-4679-a34f-29904eaaf699"
     },
-    "m_Name": "# LED Texture",
+    "m_Name": "# LED Panel Texture",
     "m_DefaultReferenceName": "Boolean_c3782b0697064514a7360cffa0eea85e",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
