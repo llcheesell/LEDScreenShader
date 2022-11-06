@@ -19,20 +19,17 @@ The built-in shader is also included with minimum functionality implemented.
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/DistantFader2.gif">
 
 ## Install
-* Import the package via UPM (Unity Package Manager).<br>
-Package Managerよりインストールしてください。
+Install the package via UPM (Unity Package Manager).<br>
 
-Package Manager > Add Package from Git URL > paste the URL below and import.
 ```
-https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.0.9
+https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.1.0
 ```
 
-* or you can manually import the unitypackage available at [Release](https://github.com/llcheesell/LEDScreenShader/releases) page.<br>
-またはReleaseよりUnitypackageをインポートしてください。
+or please consider getting the script from <a src="https://assetstore.unity.com/packages/vfx/shaders/led-screen-shader-229091">Unity Asset Store</a>
 
 ## Usage
 
-<img width="300" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://user-images.githubusercontent.com/113725/153626690-deef6682-13d5-4086-8b39-dec24587deeb.png">
+<img width="300" alt="Screen Shot 2022-02-12 at 1 08 58" src="https://raw.githubusercontent.com/llcheesell/LEDScreenShader/feature/v010/Docs~/NewUI_v010.png">
 
 * InputVideo<br>
 Apply the texture you want to project to the panel. You can put a video via RenderTexture.<br>
@@ -67,16 +64,21 @@ DistantFadeによって明るさの変化が生じたときに、HDRカラーで
 
 
 ## Note
+* This shader includes [com.needle.shadergraph-markdown](https://github.com/needle-tools/shadergraph-markdown)'s markdown version of the shader interface. If you want to use clean UI version you need the package to be installed.
+
 * Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
 リニアカラースペースでの使用を推奨。<br>
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs/linear.png">
+
+* If you have render problems in HDRP, please check/uncheck Recursive Rendering option in Shader Graph Editor.<br>
+<img width="320" src="https://raw.githubusercontent.com/llcheesell/LEDScreenShader/feature/v010/Docs~/RecursiveRendering.png">
 
 * The combination use of Bloom Post Processing is recommended.<br>
 Bloomポストエフェクトの併用を推奨。
 
 ## Roadmap
 * Performance optimization disabling detailed textures along with distantFader
-* Tile and Offset for InputVideo
+* ~~Tile and Offset for InputVideo~~ (completed in v0.1.0)
 * ~~update Build-in Shader~~ (completed in v0.0.6)
 * ~~Support HDRP~~ (completed in v0.0.5)
 * ~~Moire prevention processing according to the distance from the camera~~ (completed in v0.0.4)
