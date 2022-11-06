@@ -43,6 +43,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: cdb43915b2cf04400a9107000ca8ab26, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: a7640f15f7fe0074c9112958018e5b39, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -56,7 +60,27 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - Boolean_01765f30d9d74d1190a4e55644f0b8d6: 0
+    - Boolean_0d279ae80dac4220b33ee12419bd594a: 0
+    - Boolean_1: 0
+    - Boolean_137f1829ca6c4d17b308614723a8850e: 0
+    - Boolean_2: 0
+    - Boolean_3: 0
+    - Boolean_561609faf1d54f74aac4710e66f2e6c8: 0
+    - Boolean_95a4d6def2f04c17b9cb2cb67095de23: 0
     - Boolean_ac6b855195934dac9f3d046a71afd37f: 0
+    - Boolean_c3782b0697064514a7360cffa0eea85e: 0
+    - Boolean_c9acbda48e5541a987f4f39f828b59fb: 0
+    - Boolean_c9acbda48e5541a987f4f39f828b59fb_1: 0
+    - Boolean_cc9fdfb7078c47729b8b8b6afcac8f63: 0
+    - OffsetLEDX: 0
+    - OffsetLEDY: 0
+    - OffsetVideoX: 0
+    - OffsetVideoY: 0
+    - TilingLEDX: 50
+    - TilingLEDY: 50
+    - TilingVideoX: 1
+    - TilingVideoY: 1
     - Vector1_04710da2add54fb687913d1bf5a6b7b2: 40
     - Vector1_0e5521ea1d3b43c9b391f882dd386542: 0
     - Vector1_148355EB: 25
@@ -66,11 +90,12 @@ Material:
     - Vector1_A78CEBC: 1
     - Vector1_CC37D8CB: 0.3
     - Vector1_D4BB5679: 1
-    - Vector1_a1f9648bff084cf4959c672e512a732d: 10
+    - Vector1_a1f9648bff084cf4959c672e512a732d: 5
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _UV: 0
     m_Colors:
-    - Color_941038397df743edb971942aa6a65b41: {r: 2.828427, g: 2.828427, b: 2.828427, a: 0}
+    - Color_941038397df743edb971942aa6a65b41: {r: 1.4980392, g: 1.4980392, b: 1.4980392, a: 0}
     - Color_B7810F92: {r: 0.8627451, g: 1.6, b: 4, a: 0}
     - Vector2_ae16db7065034506a055993c41bbe614: {r: 0, g: 0, b: 0, a: 0}
     - Vector2_ea01576358e3410993f3b88f3d7e3a6b: {r: 50, g: 50, b: 0, a: 0}
