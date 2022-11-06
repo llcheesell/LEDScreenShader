@@ -1,9 +1,21 @@
 {
     "name": "com.llcheesell.led_screen_shader",
     "displayName": "LEDScreenShader",
-    "version": "0.1.0",              
+    "version": "0.1.0",
+    "author": {
+      "name": "llcheesell",
+      "email": "mail@vilvo.net",
+      "url": "https://llcheesell.com"
+    },
     "unity": "2020.3",
     "description": "LEDScreenShader by llcheesell",
+    "keywords": [
+      "shadergraph",
+      "LED",
+      "Screen",
+      "Material"
+    ],
+    "type": "shader",
     "dependencies": {
     }
 }
