@@ -22,11 +22,11 @@ The built-in shader is also included with minimum functionality implemented.
 Install the package via UPM (Unity Package Manager) or from [Unity Asset Store](https://assetstore.unity.com/packages/vfx/shaders/led-screen-shader-229091)<br>
 
 ```
-https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.1.0
+https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#v0.1.1
 ```
-Preview Release is also available at preview branch
+Develop Release is also available at preview branch
 ```
-https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#preview
+https://github.com/llcheesell/LEDScreenShader.git?path=/Assets/LEDScreenShader#develop
 ```
 
 
@@ -67,8 +67,6 @@ DistantFadeによって明るさの変化が生じたときに、HDRカラーで
 
 
 ## Note
-* This shader includes [com.needle.shadergraph-markdown](https://github.com/needle-tools/shadergraph-markdown)'s markdown version of the shader interface. If you want to use clean UI version you need the package to be installed.
-
 * Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
 <img width="640" src="https://github.com/llcheesell/LEDScreenShader/blob/main/Docs~/linear.png">
 
