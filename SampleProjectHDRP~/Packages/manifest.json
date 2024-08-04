@@ -1,11 +1,11 @@
 {
   "dependencies": {
     "com.llcheesell.led_screen_shader": "file:../../Assets/LEDScreenShader",
-    "com.unity.collab-proxy": "1.15.7",
-    "com.unity.ide.vscode": "1.2.4",
-    "com.unity.render-pipelines.high-definition": "10.8.1",
-    "com.unity.test-framework": "1.1.29",
-    "com.unity.timeline": "1.4.8",
+    "com.unity.collab-proxy": "2.4.3",
+    "com.unity.ide.vscode": "1.2.5",
+    "com.unity.render-pipelines.high-definition": "12.1.15",
+    "com.unity.test-framework": "1.1.33",
+    "com.unity.timeline": "1.6.5",
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
