@@ -1,5 +1,5 @@
 {
-    "m_SGVersion": 2,
+    "m_SGVersion": 3,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "61ddb9977bb64874ab7506b275337ff4",
     "m_Properties": [
@@ -79,6 +79,12 @@
     "m_Keywords": [
         {
             "m_Id": "0e763d844f904ca19e4be776d14b635f"
+        }
+    ],
+    "m_Dropdowns": [],
+    "m_CategoryData": [
+        {
+            "m_Id": "007db4b917c243c38eb970f4759e121a"
         }
     ],
     "m_Nodes": [
@@ -1524,10 +1530,11 @@
         "serializedMesh": {
             "m_SerializedMesh": "{\"mesh\":{\"instanceID\":0}}",
             "m_Guid": ""
-        }
+        },
+        "preventRotation": false
     },
     "m_Path": "Shader Graphs",
-    "m_ConcretePrecision": 0,
+    "m_GraphPrecision": 0,
     "m_PreviewMode": 2,
     "m_OutputNode": {
         "m_Id": ""
@@ -1535,6 +1542,90 @@
     "m_ActiveTargets": [
         {
             "m_Id": "ec44b47e98134ad8953a587b1219133c"
+        }
+    ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
+    "m_ObjectId": "007db4b917c243c38eb970f4759e121a",
+    "m_Name": "",
+    "m_ChildObjectList": [
+        {
+            "m_Id": "43dc0dafa162f08797eef85e19f052bf"
+        },
+        {
+            "m_Id": "5b85c22d3339439ebbd0c837e346cc49"
+        },
+        {
+            "m_Id": "393da73fefc57f8cbfe60757a1f49000"
+        },
+        {
+            "m_Id": "aaf5ce0c65d8928784d89eb01cee2f32"
+        },
+        {
+            "m_Id": "a1f9648bff084cf4959c672e512a732d"
+        },
+        {
+            "m_Id": "77f7d449be2f4c4fa483812fefd96abc"
+        },
+        {
+            "m_Id": "d837166da02941f1a342dfd32d3d5d96"
+        },
+        {
+            "m_Id": "601f1de8a4164c52a8da76439c87f0a6"
+        },
+        {
+            "m_Id": "739e0daf46a54265966a82b3628f9c8d"
+        },
+        {
+            "m_Id": "4e0a22ad1461ba87acbd5af036604395"
+        },
+        {
+            "m_Id": "89152ed9783a433ea8ce3c853cc0d050"
+        },
+        {
+            "m_Id": "7a86fc08d4f4453bab8f62dd990e067a"
+        },
+        {
+            "m_Id": "697f222641f04446a9ff6c6929cd4f84"
+        },
+        {
+            "m_Id": "0b70190c450a4342ab4f4a426b1eaf09"
+        },
+        {
+            "m_Id": "3ea4ac5985e045fe9bb1473433a925a9"
+        },
+        {
+            "m_Id": "df3c327e6c97da8f8847ca32221c76ab"
+        },
+        {
+            "m_Id": "3319501f8103441b911f0398babf2b53"
+        },
+        {
+            "m_Id": "fd94dc1b72c44a51aad54bea2d5dfabb"
+        },
+        {
+            "m_Id": "c2ea1eeaf8654bde8ea6473597da14d4"
+        },
+        {
+            "m_Id": "1c618d5b8bc24b06a1d36e17e85ff3dd"
+        },
+        {
+            "m_Id": "5fa687ff3eb343c287a39a2b9dd3bbec"
+        },
+        {
+            "m_Id": "9587ac5421c44de1b677a4ce4f167768"
+        },
+        {
+            "m_Id": "04710da2add54fb687913d1bf5a6b7b2"
+        },
+        {
+            "m_Id": "941038397df743edb971942aa6a65b41"
+        },
+        {
+            "m_Id": "0e763d844f904ca19e4be776d14b635f"
         }
     ]
 }
@@ -1628,7 +1719,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -1685,9 +1777,13 @@
         "m_GuidSerialized": "232fdd40-a5b6-40ab-953a-c32b66277f13"
     },
     "m_Name": "DistantFadeEnd",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_04710da2add54fb687913d1bf5a6b7b2",
     "m_OverrideReferenceName": "DistantFadeEnd",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1911,9 +2007,13 @@
         "m_GuidSerialized": "acbe91c9-4a8a-4ea3-a1bc-21cea5c2f552"
     },
     "m_Name": "LED MaskMap",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_0b70190c450a4342ab4f4a426b1eaf09",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -1922,6 +2022,8 @@
         "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"7a81ba4cd306441db9267d6b1340d044\",\"type\":3}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -1959,19 +2061,24 @@
 }
 
 {
-    "m_SGVersion": 0,
+    "m_SGVersion": 1,
     "m_Type": "UnityEditor.ShaderGraph.ShaderKeyword",
     "m_ObjectId": "0e763d844f904ca19e4be776d14b635f",
     "m_Guid": {
         "m_GuidSerialized": "b8736442-4df8-4591-9bae-9c075c3ac968"
     },
     "m_Name": "UV",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "_UV",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_KeywordType": 1,
     "m_KeywordDefinition": 0,
     "m_KeywordScope": 0,
+    "m_KeywordStages": 63,
     "m_Entries": [
         {
             "id": 5,
@@ -2198,7 +2305,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -2238,7 +2346,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "169b856dc12a4ebdb29e48a8a401a39d",
     "m_Id": 0,
-    "m_DisplayName": "Metalic",
+    "m_DisplayName": "Metalic Multiply",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2394,9 +2502,13 @@
         "m_GuidSerialized": "5004d3bc-5113-4aa2-8d4f-5f169b4731e4"
     },
     "m_Name": "Offset LED X",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "OffsetLEDX",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -2511,8 +2623,8 @@
     "m_ObjectId": "20006c926ea04096be39855faacc947a",
     "m_NormalDropOffSpace": 0,
     "m_BlendPreserveSpecular": true,
-    "m_ReceiveDecals": true,
-    "m_ReceiveSSR": true,
+    "m_ReceiveDecals": false,
+    "m_ReceiveSSR": false,
     "m_ReceiveSSRTransparent": false,
     "m_SpecularAA": false,
     "m_SpecularOcclusionMode": 1,
@@ -2639,7 +2751,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -2703,7 +2816,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "2246c22e5c6e48c09afef45190734ba7",
     "m_Id": 0,
-    "m_DisplayName": "BaseTexture",
+    "m_DisplayName": "LED BaseMap",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2758,7 +2871,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "235f550ae9ef3e8b909bb09e8607b838",
     "m_Id": 0,
-    "m_DisplayName": "LEDTexture",
+    "m_DisplayName": "LED Texture",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -2817,6 +2930,7 @@
     "m_TransparentWritesMotionVec": false,
     "m_AlphaToMask": false,
     "m_DepthOffset": false,
+    "m_ConservativeDepthOffset": false,
     "m_TransparencyFog": true,
     "m_AlphaTestShadow": false,
     "m_BackThenFrontRendering": false,
@@ -3224,9 +3338,13 @@
         "m_GuidSerialized": "77e67811-076f-40a2-868f-1710af462bce"
     },
     "m_Name": "Normal Multiply",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "Vector1_A78CEBC_1",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3438,7 +3556,8 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     },
-    "m_Space": 2
+    "m_Space": 2,
+    "m_PositionSource": 0
 }
 
 {
@@ -3497,9 +3616,13 @@
         "m_GuidSerialized": "c4977f0d-99ce-4f3d-b8a6-00f67cc0575a"
     },
     "m_Name": "Input Colorize",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Color_B7810F92",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3510,6 +3633,7 @@
         "b": 1.0,
         "a": 0.0
     },
+    "isMainColor": false,
     "m_ColorMode": 1
 }
 
@@ -3802,9 +3926,13 @@
         "m_GuidSerialized": "5752b0ea-8f31-487c-8d1e-cdf995335f6d"
     },
     "m_Name": "Metalic Multiply",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_3ea4ac5985e045fe9bb1473433a925a9",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -3996,9 +4124,13 @@
         "m_GuidSerialized": "43479b06-9d5f-448b-8223-9d1b7eb5b1bc"
     },
     "m_Name": "Input Texture (RGBA)",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_38C18792",
     "m_OverrideReferenceName": "_BaseMap",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4007,6 +4139,8 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -4255,72 +4389,6 @@
 
 {
     "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
-    "m_ObjectId": "4b9a34a3d66c4678a409f09d74406d78",
-    "m_Name": "",
-    "m_ChildObjectList": [
-        {
-            "m_Id": "43dc0dafa162f08797eef85e19f052bf"
-        },
-        {
-            "m_Id": "393da73fefc57f8cbfe60757a1f49000"
-        },
-        {
-            "m_Id": "aaf5ce0c65d8928784d89eb01cee2f32"
-        },
-        {
-            "m_Id": "a1f9648bff084cf4959c672e512a732d"
-        },
-        {
-            "m_Id": "4e0a22ad1461ba87acbd5af036604395"
-        },
-        {
-            "m_Id": "89152ed9783a433ea8ce3c853cc0d050"
-        },
-        {
-            "m_Id": "7a86fc08d4f4453bab8f62dd990e067a"
-        },
-        {
-            "m_Id": "697f222641f04446a9ff6c6929cd4f84"
-        },
-        {
-            "m_Id": "0b70190c450a4342ab4f4a426b1eaf09"
-        },
-        {
-            "m_Id": "3ea4ac5985e045fe9bb1473433a925a9"
-        },
-        {
-            "m_Id": "df3c327e6c97da8f8847ca32221c76ab"
-        },
-        {
-            "m_Id": "ea01576358e3410993f3b88f3d7e3a6b"
-        },
-        {
-            "m_Id": "ae16db7065034506a055993c41bbe614"
-        },
-        {
-            "m_Id": "9587ac5421c44de1b677a4ce4f167768"
-        },
-        {
-            "m_Id": "04710da2add54fb687913d1bf5a6b7b2"
-        },
-        {
-            "m_Id": "941038397df743edb971942aa6a65b41"
-        },
-        {
-            "m_Id": "ac6b855195934dac9f3d046a71afd37f"
-        },
-        {
-            "m_Id": "bee47a6fecfd4b8dafca8f5b1a210ce9"
-        },
-        {
-            "m_Id": "84ec058263388581a61915b221ac1e39"
-        }
-    ]
-}
-
-{
-    "m_SGVersion": 0,
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "4c49138a62b34ad9ab8971d5225e6f43",
     "m_Id": 6,
@@ -4406,9 +4474,13 @@
         "m_GuidSerialized": "e31e0553-4891-48ba-b253-cabb7b8e9e88"
     },
     "m_Name": "LED Texture",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_1627220F",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4417,6 +4489,8 @@
         "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"40995f7a6e4074451a7646b65ff61a06\",\"type\":3}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -4473,7 +4547,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 1,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -4720,7 +4795,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "5681a712ecd1eb8d93db30ef4d2c1a77",
     "m_Id": 0,
-    "m_DisplayName": "Input Texture",
+    "m_DisplayName": "Input Texture (RGBA)",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -4881,9 +4956,13 @@
         "m_GuidSerialized": "b4ae5969-0b1a-4c7c-8bb4-43aacdfb073d"
     },
     "m_Name": "Input Alpha Texture (R)",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_5b85c22d3339439ebbd0c837e346cc49",
     "m_OverrideReferenceName": "_AlphaMap",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -4892,6 +4971,8 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -5094,7 +5175,7 @@
     "m_SGVersion": 0,
     "m_Type": "UnityEditor.Rendering.HighDefinition.ShaderGraph.SystemData",
     "m_ObjectId": "5f56e400a17a48aa93f96d54a7d62a2b",
-    "m_MaterialNeedsUpdateHash": 280370,
+    "m_MaterialNeedsUpdateHash": 279841,
     "m_SurfaceType": 0,
     "m_RenderingPass": 1,
     "m_BlendMode": 0,
@@ -5109,8 +5190,16 @@
     "m_SupportLodCrossFade": false,
     "m_DoubleSidedMode": 0,
     "m_DOTSInstancing": false,
+    "m_CustomVelocity": false,
+    "m_Tessellation": false,
+    "m_TessellationMode": 0,
+    "m_TessellationFactorMinDistance": 20.0,
+    "m_TessellationFactorMaxDistance": 50.0,
+    "m_TessellationFactorTriangleSize": 100.0,
+    "m_TessellationShapeFactor": 0.75,
+    "m_TessellationBackFaceCullEpsilon": -0.25,
+    "m_TessellationMaxDisplacement": 0.009999999776482582,
     "m_Version": 1,
-    "m_FirstTimeMigrationExecuted": true,
     "inspectorFoldoutMask": 9
 }
 
@@ -5122,9 +5211,13 @@
         "m_GuidSerialized": "e8a9cb35-185a-49d6-89f0-bc74d6a7dc77"
     },
     "m_Name": "Offset LED Y",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "OffsetLEDY",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5160,9 +5253,13 @@
         "m_GuidSerialized": "1e5f3d58-435b-4b16-bdd0-1fc3dce80568"
     },
     "m_Name": "Offset X Video",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_601f1de8a4164c52a8da76439c87f0a6",
     "m_OverrideReferenceName": "OffsetVideoX",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5354,9 +5451,13 @@
         "m_GuidSerialized": "4ecc78f2-718e-4423-a843-50557a12f238"
     },
     "m_Name": "LED AlphaMap (R)",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_697f222641f04446a9ff6c6929cd4f84",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5365,6 +5466,8 @@
         "m_SerializedTexture": "{\"texture\":{\"instanceID\":0}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -5507,7 +5610,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -5707,9 +5811,13 @@
         "m_GuidSerialized": "b20e931a-2407-4ce6-a494-34e65a67604c"
     },
     "m_Name": "Offset Y Video",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "OffsetVideoY",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -5795,7 +5903,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -5861,9 +5970,13 @@
         "m_GuidSerialized": "acb6c825-78b8-4d5d-ad2d-58d7ab5635e1"
     },
     "m_Name": "Tiling X Video",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_77f7d449be2f4c4fa483812fefd96abc",
     "m_OverrideReferenceName": "TilingVideoX",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6008,9 +6121,13 @@
         "m_GuidSerialized": "01e911fb-f3e9-4d68-ad16-a3a40bb92ea2"
     },
     "m_Name": "LED NormalMap",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_7a86fc08d4f4453bab8f62dd990e067a",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6019,6 +6136,8 @@
         "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"78bbb74e77f194cb09d583ed3be6658c\",\"type\":3}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -6154,8 +6273,7 @@
     "m_ObjectId": "7f09926b0863459c9c0ca577823de5aa",
     "m_WorkflowMode": 1,
     "m_NormalDropOffSpace": 0,
-    "m_ClearCoat": false,
-    "m_BlendModePreserveSpecular": false
+    "m_ClearCoat": false
 }
 
 {
@@ -6329,7 +6447,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "83e4649475aa0e87ac1c539695f3becf",
     "m_Id": 0,
-    "m_DisplayName": "Smoothness",
+    "m_DisplayName": "Smoothness Multiply",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -6449,7 +6567,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "8683777f07c54a3dab50ee75e87d26e3",
     "m_Id": 0,
-    "m_DisplayName": "NormalTexture",
+    "m_DisplayName": "LED NormalMap",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -6465,9 +6583,13 @@
         "m_GuidSerialized": "4bdd9b5d-84ec-4d17-a2d2-1a6f17de1535"
     },
     "m_Name": "LED BaseMap",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Texture2D_89152ed9783a433ea8ce3c853cc0d050",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6476,6 +6598,8 @@
         "m_SerializedTexture": "{\"texture\":{\"fileID\":2800000,\"guid\":\"cdb43915b2cf04400a9107000ca8ab26\",\"type\":3}}",
         "m_Guid": ""
     },
+    "isMainTexture": false,
+    "useTilingAndOffset": false,
     "m_Modifiable": true,
     "m_DefaultType": 0
 }
@@ -6693,9 +6817,13 @@
         "m_GuidSerialized": "8fffd89d-635f-400a-b76f-dc988d38cce9"
     },
     "m_Name": "DistantFadeBrightness",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Color_941038397df743edb971942aa6a65b41",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6706,6 +6834,7 @@
         "b": 11.98431396484375,
         "a": 0.0
     },
+    "isMainColor": false,
     "m_ColorMode": 1
 }
 
@@ -6774,9 +6903,13 @@
         "m_GuidSerialized": "0ab085e3-99d7-4a11-be2b-205e968f7cdd"
     },
     "m_Name": "DistantFadeStart",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_9587ac5421c44de1b677a4ce4f167768",
     "m_OverrideReferenceName": "DistantFadeStart",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -6818,7 +6951,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "96fc878e3ae144cca5b832ce3d014369",
     "m_Id": 0,
-    "m_DisplayName": "MaskMap",
+    "m_DisplayName": "LED MaskMap",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
@@ -7232,9 +7365,13 @@
         "m_GuidSerialized": "a23aba45-0b6b-4080-b98f-8d6f6ce158de"
     },
     "m_Name": "Intensity Multiplier",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_a1f9648bff084cf4959c672e512a732d",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -7490,9 +7627,13 @@
         "m_GuidSerialized": "ec3b7c09-60cc-4547-b3ce-f34d777e30ff"
     },
     "m_Name": "Input Colorize Opacity",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_D4BB5679",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -8136,9 +8277,13 @@
         "m_GuidSerialized": "a3fbdac7-9bb6-46d0-b275-6c6d62f63487"
     },
     "m_Name": "Tile LED Y",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "TilingLEDY",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -8288,90 +8433,6 @@
     "m_Property": {
         "m_Id": "9587ac5421c44de1b677a4ce4f167768"
     }
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
-    "m_ObjectId": "c77db2e2961840ba9c49b52f77cbbb5d",
-    "m_Name": "",
-    "m_ChildObjectList": [
-        {
-            "m_Id": "43dc0dafa162f08797eef85e19f052bf"
-        },
-        {
-            "m_Id": "393da73fefc57f8cbfe60757a1f49000"
-        },
-        {
-            "m_Id": "aaf5ce0c65d8928784d89eb01cee2f32"
-        },
-        {
-            "m_Id": "a1f9648bff084cf4959c672e512a732d"
-        },
-        {
-            "m_Id": "5009e178ec764cc681fac971338b9e13"
-        },
-        {
-            "m_Id": "13765bb484ed40d8bb3dcb30b6cd8ede"
-        },
-        {
-            "m_Id": "c45935ac7e2843c097706bbc6433a9ef"
-        },
-        {
-            "m_Id": "c6b681bc44564e79b2ef30353d49183b"
-        },
-        {
-            "m_Id": "4e0a22ad1461ba87acbd5af036604395"
-        },
-        {
-            "m_Id": "89152ed9783a433ea8ce3c853cc0d050"
-        },
-        {
-            "m_Id": "7a86fc08d4f4453bab8f62dd990e067a"
-        },
-        {
-            "m_Id": "697f222641f04446a9ff6c6929cd4f84"
-        },
-        {
-            "m_Id": "0b70190c450a4342ab4f4a426b1eaf09"
-        },
-        {
-            "m_Id": "3ea4ac5985e045fe9bb1473433a925a9"
-        },
-        {
-            "m_Id": "df3c327e6c97da8f8847ca32221c76ab"
-        },
-        {
-            "m_Id": "f0a02fd6bd8b4135abb279cd394c8c12"
-        },
-        {
-            "m_Id": "661f0ed18c5d4bbaa8140c961d36ecfa"
-        },
-        {
-            "m_Id": "15d3037085f143c0a6267f81f9cf6b85"
-        },
-        {
-            "m_Id": "8502ff0b1b5f401b9cb563dac69fcecd"
-        },
-        {
-            "m_Id": "9587ac5421c44de1b677a4ce4f167768"
-        },
-        {
-            "m_Id": "04710da2add54fb687913d1bf5a6b7b2"
-        },
-        {
-            "m_Id": "076ad82973424eb9bbbed60415a5df01"
-        },
-        {
-            "m_Id": "5f7bb030a26448bc983ca81fea90a267"
-        },
-        {
-            "m_Id": "941038397df743edb971942aa6a65b41"
-        },
-        {
-            "m_Id": "2267151c895a4997a64ea8a236b934c9"
-        }
-    ]
 }
 
 {
@@ -8556,7 +8617,8 @@
         "m_SerializableColors": []
     },
     "m_TextureType": 0,
-    "m_NormalMapSpace": 0
+    "m_NormalMapSpace": 0,
+    "m_EnableGlobalMipBias": true
 }
 
 {
@@ -8867,9 +8929,13 @@
         "m_GuidSerialized": "5694ede0-307e-4ce7-bb99-f2ce441e0f07"
     },
     "m_Name": "Tiling Y Video",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "TilingVideoY",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -8930,75 +8996,6 @@
     "m_Value": 0.0,
     "m_DefaultValue": 0.0,
     "m_Labels": []
-}
-
-{
-    "m_SGVersion": 0,
-    "m_Type": "UnityEditor.ShaderGraph.CategoryData",
-    "m_ObjectId": "dbccea2f146a4fdd8c2173db07b2f5e7",
-    "m_Name": "",
-    "m_ChildObjectList": [
-        {
-            "m_Id": "2267151c895a4997a64ea8a236b934c9"
-        },
-        {
-            "m_Id": "43dc0dafa162f08797eef85e19f052bf"
-        },
-        {
-            "m_Id": "393da73fefc57f8cbfe60757a1f49000"
-        },
-        {
-            "m_Id": "aaf5ce0c65d8928784d89eb01cee2f32"
-        },
-        {
-            "m_Id": "a1f9648bff084cf4959c672e512a732d"
-        },
-        {
-            "m_Id": "4e0a22ad1461ba87acbd5af036604395"
-        },
-        {
-            "m_Id": "89152ed9783a433ea8ce3c853cc0d050"
-        },
-        {
-            "m_Id": "7a86fc08d4f4453bab8f62dd990e067a"
-        },
-        {
-            "m_Id": "697f222641f04446a9ff6c6929cd4f84"
-        },
-        {
-            "m_Id": "0b70190c450a4342ab4f4a426b1eaf09"
-        },
-        {
-            "m_Id": "3ea4ac5985e045fe9bb1473433a925a9"
-        },
-        {
-            "m_Id": "df3c327e6c97da8f8847ca32221c76ab"
-        },
-        {
-            "m_Id": "ea01576358e3410993f3b88f3d7e3a6b"
-        },
-        {
-            "m_Id": "ae16db7065034506a055993c41bbe614"
-        },
-        {
-            "m_Id": "9587ac5421c44de1b677a4ce4f167768"
-        },
-        {
-            "m_Id": "04710da2add54fb687913d1bf5a6b7b2"
-        },
-        {
-            "m_Id": "941038397df743edb971942aa6a65b41"
-        },
-        {
-            "m_Id": "ac6b855195934dac9f3d046a71afd37f"
-        },
-        {
-            "m_Id": "bee47a6fecfd4b8dafca8f5b1a210ce9"
-        },
-        {
-            "m_Id": "84ec058263388581a61915b221ac1e39"
-        }
-    ]
 }
 
 {
@@ -9094,9 +9091,13 @@
         "m_GuidSerialized": "de2799c1-15cf-45e2-b50b-9f3eb077613d"
     },
     "m_Name": "Smoothness Multiply",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "Vector1_A78CEBC",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -9439,7 +9440,8 @@
             "m_Id": "5f56e400a17a48aa93f96d54a7d62a2b"
         }
     ],
-    "m_CustomEditorGUI": ""
+    "m_CustomEditorGUI": "",
+    "m_SupportVFX": false
 }
 
 {
@@ -9972,9 +9974,13 @@
         "m_GuidSerialized": "520d5069-9cc8-4bae-82f8-7245eebcf6ac"
     },
     "m_Name": "Tile LED X",
+    "m_DefaultRefNameVersion": 0,
+    "m_RefNameGeneratedByDisplayName": "",
     "m_DefaultReferenceName": "",
     "m_OverrideReferenceName": "TilingLEDX",
     "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
     "m_Precision": 0,
     "overrideHLSLDeclaration": false,
     "hlslDeclarationOverride": 0,
@@ -10030,7 +10036,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Texture2DMaterialSlot",
     "m_ObjectId": "ffb6f3769d5a475097ce8510fcb79701",
     "m_Id": 0,
-    "m_DisplayName": "LED AlphaMap",
+    "m_DisplayName": "LED AlphaMap (R)",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_ShaderOutputName": "Out",
