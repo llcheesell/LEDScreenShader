@@ -214,6 +214,26 @@ Shader "llcheesell/LEDScreen"
             }
             ENDHLSL
         }
+
+        // --------------------------------------------------------------------
+        // Pass: MotionVectors (URP)
+        // --------------------------------------------------------------------
+        Pass
+        {
+            Name "MotionVectors"
+            Tags { "LightMode" = "MotionVectors" }
+
+            ColorMask RG
+
+            HLSLPROGRAM
+            #pragma vertex vertMotionVectors
+            #pragma fragment fragMotionVectors
+            #pragma multi_compile_instancing
+
+            #include "LEDScreenURP.hlsl"
+            #include "LEDScreenCore.hlsl"
+            ENDHLSL
+        }
     }
 
     // ========================================================================
@@ -349,6 +369,26 @@ Shader "llcheesell/LEDScreen"
 
                 return half4(finalColor, 1.0);
             }
+            ENDHLSL
+        }
+
+        // --------------------------------------------------------------------
+        // Pass: MotionVectors (HDRP)
+        // --------------------------------------------------------------------
+        Pass
+        {
+            Name "MotionVectors"
+            Tags { "LightMode" = "MotionVectors" }
+
+            ColorMask RG
+
+            HLSLPROGRAM
+            #pragma vertex vertMotionVectors
+            #pragma fragment fragMotionVectors
+            #pragma multi_compile_instancing
+
+            #include "LEDScreenHDRP.hlsl"
+            #include "LEDScreenCore.hlsl"
             ENDHLSL
         }
     }
