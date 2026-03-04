@@ -30,6 +30,8 @@ TEXTURE2D(_MaskMap);    SAMPLER(sampler_MaskMap);
 #ifndef unity_MatrixPreviousVP
     #define unity_MatrixPreviousVP _PrevViewProjMatrix
 #endif
+// Pipeline abstraction macros
+#define LED_FOV_COT unity_CameraProjection[1][1]
 #define LED_PREV_VP unity_MatrixPreviousVP
 
 #endif // LEDSCREEN_HDRP_INCLUDED

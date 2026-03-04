@@ -20,6 +20,11 @@
 #define TransformObjectToWorld(pos) mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz
 #define TransformWorldToHClip(pos)  mul(UNITY_MATRIX_VP, float4(pos, 1.0))
 
+// Pipeline abstraction macros
+#define LED_FOV_COT unity_CameraProjection[1][1]
+// Dummy for compilation — Built-in has no MotionVectors pass
+#define LED_PREV_VP UNITY_MATRIX_VP
+
 // Built-in does not use CBUFFER for SRP Batcher (no SRP Batcher in Built-in)
 sampler2D _InputTex;
 sampler2D _LEDTex;

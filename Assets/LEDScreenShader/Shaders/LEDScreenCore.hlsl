@@ -28,7 +28,7 @@ float GetFOVAdjustedDistance(float3 worldPos)
     // unity_CameraProjection[1][1] = cot(verticalFOV / 2)
     // Normalize against FOV 60deg baseline: cot(30deg) = sqrt(3) ~ 1.732
     // Telephoto (small FOV) => larger value => fades in sooner
-    float fovCot = unity_CameraProjection[1][1];
+    float fovCot = LED_FOV_COT;
     float normalizedFov = fovCot / 1.7320508; // sqrt(3)
 
     return dist * normalizedFov;

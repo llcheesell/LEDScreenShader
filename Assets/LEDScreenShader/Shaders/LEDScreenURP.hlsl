@@ -25,7 +25,8 @@ TEXTURE2D(_BaseMap);    SAMPLER(sampler_BaseMap);
 TEXTURE2D(_NormalMap);  SAMPLER(sampler_NormalMap);
 TEXTURE2D(_MaskMap);    SAMPLER(sampler_MaskMap);
 
-// Previous VP matrix — available in URP via built-in variable
+// Pipeline abstraction macros
+#define LED_FOV_COT unity_CameraProjection[1][1]
 #define LED_PREV_VP unity_MatrixPreviousVP
 
 #endif // LEDSCREEN_URP_INCLUDED
