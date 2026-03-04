@@ -217,8 +217,141 @@ Shader "llcheesell/LEDScreen"
     }
 
     // ========================================================================
-    // HDRP SubShader (placeholder — expanded in next commit)
+    // HDRP SubShader
     // ========================================================================
+    SubShader
+    {
+        Tags
+        {
+            "RenderPipeline" = "HDRenderPipeline"
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+        }
+
+        // --------------------------------------------------------------------
+        // Pass: ForwardOnly (HDRP)
+        // --------------------------------------------------------------------
+        Pass
+        {
+            Name "ForwardOnly"
+            Tags { "LightMode" = "ForwardOnly" }
+
+            HLSLPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+
+            #pragma multi_compile _ LIGHTMAP_ON
+            #pragma multi_compile _ DIRLIGHTMAP_COMBINED
+            #pragma multi_compile_fragment _ SHADOWS_SHADOWMASK
+            #pragma multi_compile_instancing
+
+            #include "LEDScreenHDRP.hlsl"
+
+            // HDRP lighting utilities
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
+
+            #include "LEDScreenCore.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS   : NORMAL;
+                float4 tangentOS  : TANGENT;
+                float2 texcoord   : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionCS   : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+                float3 positionWS   : TEXCOORD1;
+                float3 normalWS     : TEXCOORD2;
+                float4 tangentWS    : TEXCOORD3;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes IN)
+            {
+                Varyings OUT;
+                UNITY_SETUP_INSTANCE_ID(IN);
+                UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+
+                float3 posWS = TransformObjectToWorld(IN.positionOS.xyz);
+
+                OUT.positionCS = TransformWorldToHClip(posWS);
+                OUT.positionWS = posWS;
+                OUT.normalWS   = TransformObjectToWorldNormal(IN.normalOS);
+                OUT.tangentWS  = float4(TransformObjectToWorldDir(IN.tangentOS.xyz), IN.tangentOS.w);
+                OUT.uv         = IN.texcoord;
+
+                return OUT;
+            }
+
+            half4 frag(Varyings IN) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(IN);
+                UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(IN);
+
+                // UV
+                float2 inputUV = GetInputUV(IN.uv);
+                float2 ledUV   = GetLEDUV(IN.uv);
+
+                // Fade
+                float distFade = ComputeDistantFade(IN.positionWS);
+                float autoFade = ComputeAutoFade(ledUV);
+                float fade     = max(distFade, autoFade);
+
+                // LED emission
+                float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
+                float3 emission  = ledResult.rgb;
+
+                // Base material
+                half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, ledUV);
+                half3 normalTS  = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, ledUV));
+                half4 maskMap   = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, ledUV);
+
+                // Cabinet grid
+                float emissiveScale = 1.0;
+                ApplyCabinetGrid(IN.uv, normalTS, emissiveScale);
+                emission *= emissiveScale;
+
+                // TBN: tangent-space normal to world-space
+                float sgn = IN.tangentWS.w;
+                float3 bitangent = sgn * cross(IN.normalWS, IN.tangentWS.xyz);
+                half3x3 TBN = half3x3(IN.tangentWS.xyz, bitangent, IN.normalWS);
+                half3 normalWS = normalize(mul(normalTS, TBN));
+
+                // Simplified HDRP lighting: directional light + ambient
+                float3 viewDirWS = GetWorldSpaceNormalizeViewDir(IN.positionWS);
+
+                // Ambient from spherical harmonics
+                float3 ambient = SampleSH(normalWS);
+
+                // Main directional light
+                float3 lightDir = _DirectionalLightDatas[0].forward.xyz;
+                float3 lightColor = _DirectionalLightDatas[0].color.rgb;
+                float NdotL = saturate(dot(normalWS, -lightDir));
+
+                // Basic PBR approximation
+                float metallic   = maskMap.r;
+                float smoothness = maskMap.a;
+                float occlusion  = maskMap.g;
+                float roughness  = 1.0 - smoothness;
+
+                float3 diffuse = baseColor.rgb * (1.0 - metallic);
+                float3 directLighting = diffuse * lightColor * NdotL;
+                float3 ambientLighting = diffuse * ambient * occlusion;
+
+                float3 finalColor = directLighting + ambientLighting + emission;
+
+                return half4(finalColor, 1.0);
+            }
+            ENDHLSL
+        }
+    }
 
     // ========================================================================
     // Built-in SubShader (placeholder — expanded in next commit)
