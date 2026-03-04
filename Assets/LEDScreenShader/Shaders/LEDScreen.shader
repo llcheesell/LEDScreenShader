@@ -45,6 +45,9 @@ Shader "llcheesell/LEDScreen"
             "Queue" = "Geometry"
         }
 
+        // Only compile this SubShader when URP package is installed
+        PackageRequirements { "com.unity.render-pipelines.universal": "" }
+
         // --------------------------------------------------------------------
         // Pass: ForwardLit (URP)
         // --------------------------------------------------------------------
@@ -247,6 +250,9 @@ Shader "llcheesell/LEDScreen"
             "RenderType" = "Opaque"
             "Queue" = "Geometry"
         }
+
+        // Only compile this SubShader when HDRP package is installed
+        PackageRequirements { "com.unity.render-pipelines.high-definition": "" }
 
         // --------------------------------------------------------------------
         // Pass: ForwardOnly (HDRP)
