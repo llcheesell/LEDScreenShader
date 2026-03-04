@@ -354,8 +354,136 @@ Shader "llcheesell/LEDScreen"
     }
 
     // ========================================================================
-    // Built-in SubShader (placeholder — expanded in next commit)
+    // Built-in SubShader (fallback — no RenderPipeline tag)
     // ========================================================================
+    SubShader
+    {
+        Tags
+        {
+            "RenderType" = "Opaque"
+            "Queue" = "Geometry"
+        }
+
+        // --------------------------------------------------------------------
+        // Pass: ForwardBase (Built-in)
+        // --------------------------------------------------------------------
+        Pass
+        {
+            Name "ForwardBase"
+            Tags { "LightMode" = "ForwardBase" }
+
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma multi_compile_fwdbase
+            #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+
+            #include "LEDScreenBuiltin.hlsl"
+            #include "LEDScreenCore.hlsl"
+
+            struct Attributes
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS   : NORMAL;
+                float4 tangentOS  : TANGENT;
+                float2 texcoord   : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct Varyings
+            {
+                float4 positionCS   : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+                float3 positionWS   : TEXCOORD1;
+                float3 normalWS     : TEXCOORD2;
+                float4 tangentWS    : TEXCOORD3;
+                UNITY_FOG_COORDS(4)
+                UNITY_SHADOW_COORDS(5)
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            Varyings vert(Attributes IN)
+            {
+                Varyings OUT;
+                UNITY_SETUP_INSTANCE_ID(IN);
+                UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+
+                float3 posWS = TransformObjectToWorld(IN.positionOS.xyz);
+
+                OUT.positionCS = TransformWorldToHClip(posWS);
+                OUT.positionWS = posWS;
+                OUT.normalWS   = UnityObjectToWorldNormal(IN.normalOS);
+                OUT.tangentWS  = float4(UnityObjectToWorldDir(IN.tangentOS.xyz), IN.tangentOS.w);
+                OUT.uv         = IN.texcoord;
+
+                UNITY_TRANSFER_FOG(OUT, OUT.positionCS);
+                UNITY_TRANSFER_SHADOW(OUT, IN.texcoord);
+
+                return OUT;
+            }
+
+            half4 frag(Varyings IN) : SV_Target
+            {
+                UNITY_SETUP_INSTANCE_ID(IN);
+
+                // UV
+                float2 inputUV = GetInputUV(IN.uv);
+                float2 ledUV   = GetLEDUV(IN.uv);
+
+                // Fade
+                float distFade = ComputeDistantFade(IN.positionWS);
+                float autoFade = ComputeAutoFade(ledUV);
+                float fade     = max(distFade, autoFade);
+
+                // LED emission
+                float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
+                float3 emission  = ledResult.rgb;
+
+                // Base material
+                half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, ledUV);
+                half3 normalTS  = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, ledUV));
+                half4 maskMap   = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, ledUV);
+
+                // Cabinet grid
+                float emissiveScale = 1.0;
+                ApplyCabinetGrid(IN.uv, normalTS, emissiveScale);
+                emission *= emissiveScale;
+
+                // TBN: tangent-space normal to world-space
+                float sgn = IN.tangentWS.w;
+                float3 bitangent = sgn * cross(IN.normalWS, IN.tangentWS.xyz);
+                half3x3 TBN = half3x3(IN.tangentWS.xyz, bitangent, IN.normalWS);
+                half3 normalWS = normalize(mul(normalTS, TBN));
+
+                // Built-in lighting
+                float metallic   = maskMap.r;
+                float smoothness = maskMap.a;
+                float occlusion  = maskMap.g;
+
+                // Ambient (spherical harmonics)
+                float3 ambient = ShadeSH9(float4(normalWS, 1.0));
+
+                // Main directional light
+                float NdotL = saturate(dot(normalWS, _WorldSpaceLightPos0.xyz));
+                UNITY_LIGHT_ATTENUATION(atten, IN, IN.positionWS);
+
+                float3 diffuse = baseColor.rgb * (1.0 - metallic);
+                float3 directLighting = diffuse * _LightColor0.rgb * NdotL * atten;
+                float3 ambientLighting = diffuse * ambient * occlusion;
+
+                float3 finalColor = directLighting + ambientLighting + emission;
+
+                // Fog
+                UNITY_APPLY_FOG(IN.fogCoord, finalColor);
+
+                return half4(finalColor, 1.0);
+            }
+            ENDCG
+        }
+    }
 
     Fallback "Diffuse"
 }
