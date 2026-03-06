@@ -2,35 +2,87 @@ Shader "llcheesell/LEDScreen"
 {
     Properties
     {
-        // --- Input ---
-        _InputTex         ("Input Texture", 2D)          = "white" {}
-        _InputTex_ST      ("Input Tiling/Offset", Vector) = (1,1,0,0)
+        // =====================================================================
+        // Input Screen
+        // =====================================================================
+        [Header(Input Screen)]
+        [Space(5)]
+        _InputTex         ("Texture", 2D)  = "white" {}
 
-        // --- LED Texture ---
-        // RGB channels = subpixel masks (R=red area, G=green area, B=blue area)
-        _LEDTex           ("LED Texture (RGB=subpixel mask)", 2D) = "white" {}
-        _LEDTiling        ("LED Tiling (X/Y)", Vector)   = (100, 56, 0, 0)
+        // =====================================================================
+        // LED Subpixel
+        // =====================================================================
+        [Space(10)]
+        [Header(LED Subpixel)]
+        [Space(5)]
+        [NoScaleOffset]
+        _LEDTex           ("LED Mask (RGB = subpixel mask)", 2D) = "white" {}
+        _LEDTilingX       ("LED Columns", Float)  = 100
+        _LEDTilingY       ("LED Rows",    Float)  = 56
 
-        // --- Brightness ---
-        _IntensityMultiplier ("Intensity Multiplier", Float) = 1.0
+        // =====================================================================
+        // Emission
+        // =====================================================================
+        [Space(10)]
+        [Header(Emission)]
+        [Space(5)]
+        [HDR]
+        _EmissionColor         ("Emission Color", Color) = (1,1,1,1)
+        _IntensityMultiplier   ("Intensity", Range(0.1, 10)) = 1.0
 
-        // --- Distant Fader ---
-        _DistantFadeStart      ("Distant Fade Start", Float)  = 3.0
-        _DistantFadeEnd        ("Distant Fade End", Float)    = 6.0
-        _DistantFadeBrightness ("Distant Fade Brightness", Color) = (1,1,1,1)
+        // =====================================================================
+        // Distant Fade
+        // =====================================================================
+        [Space(10)]
+        [Header(Distant Fade)]
+        [Space(5)]
+        _DistantFadeStart      ("Start Distance", Float)   = 3.0
+        _DistantFadeEnd        ("End Distance",   Float)   = 6.0
+        _DistantFadeBrightness ("Fade Brightness", Color)  = (1,1,1,1)
 
-        // --- Cabinet Grid ---
-        _CabinetGridEnabled       ("Cabinet Grid Enabled", Float)          = 0.0
-        _CabinetTiling            ("Cabinet Tiling (cols, rows)", Vector)  = (10, 6, 0, 0)
-        _CabinetSeamWidth         ("Cabinet Seam Width", Range(0,0.05))   = 0.005
-        _CabinetSeamDepth         ("Cabinet Seam Depth", Range(0,1))      = 0.3
-        _CabinetBrightnessVariance("Cabinet Brightness Variance", Range(0,0.1)) = 0.02
+        // =====================================================================
+        // Cabinet Grid
+        // =====================================================================
+        [Space(10)]
+        [Header(Cabinet Grid)]
+        [Space(5)]
+        [Toggle]
+        _CabinetGridEnabled        ("Enable Cabinet Grid", Float) = 0.0
+        _CabinetColumns            ("Columns",  Float)               = 10
+        _CabinetRows               ("Rows",     Float)               = 6
+        _CabinetSeamWidth          ("Seam Width",  Range(0, 0.05))   = 0.005
+        _CabinetSeamDepth          ("Seam Depth",  Range(0, 1))      = 0.3
+        _CabinetBrightnessVariance ("Brightness Variance", Range(0, 0.1)) = 0.02
 
-        // --- Base Material ---
-        _BaseMap    ("Base Texture", 2D)                    = "black" {}
-        [Normal]
-        _NormalMap  ("Normal Map", 2D)                      = "bump"  {}
-        _MaskMap    ("Mask Map (Metallic/AO/Smoothness)", 2D) = "white" {}
+        // =====================================================================
+        // Surface Material
+        // =====================================================================
+        [Space(10)]
+        [Header(Surface Material)]
+        [Space(5)]
+        _BaseColor      ("Base Color", Color)  = (1, 1, 1, 1)
+        _BaseMap        ("Base Map",   2D)     = "black" {}
+
+        [Space(5)]
+        [NoScaleOffset] [Normal]
+        _NormalMap      ("Normal Map", 2D) = "bump" {}
+        _NormalStrength ("Normal Strength", Range(0, 2)) = 1.0
+
+        [Space(5)]
+        [NoScaleOffset]
+        _MaskMap        ("Mask Map (R=Metal G=AO B=Detail A=Smooth)", 2D) = "white" {}
+        _Metallic       ("Metallic",   Range(0, 1)) = 0.0
+        _Smoothness     ("Smoothness", Range(0, 1)) = 0.3
+        _OcclusionStrength ("Occlusion Strength", Range(0, 1)) = 1.0
+
+        // =====================================================================
+        // Rendering
+        // =====================================================================
+        [Space(10)]
+        [Header(Rendering)]
+        [Space(5)]
+        [Enum(UnityEngine.Rendering.CullMode)]
+        _CullMode ("Cull Mode", Float) = 2
     }
 
     // ========================================================================
@@ -95,38 +147,48 @@ Shader "llcheesell/LEDScreen"
     {
         UNITY_SETUP_INSTANCE_ID(IN);
 
-        // UV
-        float2 inputUV = GetInputUV(IN.uv);
-        float2 ledUV   = GetLEDUV(IN.uv);
+        // ---- UV computation ----
+        float2 inputUV   = GetInputUV(IN.uv);     // Input texture (own Tiling/Offset)
+        float2 ledUV     = GetLEDUV(IN.uv);       // LED mask (columns x rows)
+        float2 baseTexUV = GetBaseUV(IN.uv);       // Base/Normal/Mask (shared Tiling/Offset)
 
-        // Fade
+        // ---- LED fade ----
         float distFade = ComputeDistantFade(IN.positionWS);
         float autoFade = ComputeAutoFade(ledUV);
         float fade     = max(distFade, autoFade);
 
-        // LED emission
+        // ---- LED emission ----
         float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
         float3 emission  = ledResult.rgb;
 
-        // Base material
-        half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, ledUV);
-        half3 normalTS  = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, ledUV));
-        half4 maskMap   = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, ledUV);
+        // ---- Base material sampling (using base UV) ----
+        half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseTexUV) * _BaseColor;
 
-        // Cabinet grid
+        // Normal map with strength
+        half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseTexUV));
+        normalTS.xy *= _NormalStrength;
+        normalTS = normalize(normalTS);
+
+        // Mask Map: R=Metallic, G=AO, B=Detail(unused), A=Smoothness
+        half4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, baseTexUV);
+        float metallic   = maskMap.r * _Metallic;
+        float ao         = lerp(1.0, maskMap.g, _OcclusionStrength);
+        float smoothness = maskMap.a * _Smoothness;
+        float roughness  = 1.0 - smoothness;
+
+        // ---- Cabinet grid ----
         float emissiveScale = 1.0;
         ApplyCabinetGrid(IN.uv, normalTS, emissiveScale);
         emission *= emissiveScale;
 
-        // TBN: tangent-space normal to world-space
+        // ---- TBN: tangent-space normal to world-space ----
         float sgn = IN.tangentWS.w;
         float3 bitangent = sgn * cross(IN.normalWS, IN.tangentWS.xyz);
         half3x3 TBN = half3x3(IN.tangentWS.xyz, bitangent, IN.normalWS);
         half3 normalWS = normalize(mul(normalTS, TBN));
 
-        // Lighting (Built-in compatible — works across all pipelines)
-        float metallic   = maskMap.r;
-        float occlusion  = maskMap.g;
+        // ---- Lighting ----
+        float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
 
         // Ambient (spherical harmonics)
         float3 ambient = ShadeSH9(float4(normalWS, 1.0));
@@ -135,11 +197,43 @@ Shader "llcheesell/LEDScreen"
         float NdotL = saturate(dot(normalWS, _WorldSpaceLightPos0.xyz));
         UNITY_LIGHT_ATTENUATION(atten, IN, IN.positionWS);
 
-        float3 diffuse = baseColor.rgb * (1.0 - metallic);
-        float3 directLighting = diffuse * _LightColor0.rgb * NdotL * atten;
-        float3 ambientLighting = diffuse * ambient * occlusion;
+        // Diffuse
+        float3 diffuseAlbedo = baseColor.rgb * (1.0 - metallic);
+        float3 directDiffuse = diffuseAlbedo * _LightColor0.rgb * NdotL * atten;
+        float3 ambientDiffuse = diffuseAlbedo * ambient * ao;
 
-        float3 finalColor = directLighting + ambientLighting + emission;
+        // Specular (Blinn-Phong approximation)
+        float specPower = max(1.0, pow(8192.0, smoothness)); // perceptual mapping
+        float3 halfDir = normalize(_WorldSpaceLightPos0.xyz + viewDir);
+        float NdotH = saturate(dot(normalWS, halfDir));
+        float specIntensity = pow(NdotH, specPower) * smoothness;
+
+        // F0: dielectric=0.04, metallic=baseColor
+        float3 specColor = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
+        float3 directSpecular = specColor * _LightColor0.rgb * specIntensity * NdotL * atten;
+
+        // Fresnel (Schlick approximation) for environment reflection
+        float NdotV = saturate(dot(normalWS, viewDir));
+        float fresnel = pow(1.0 - NdotV, 5.0);
+        float3 envSpecColor = lerp(specColor, float3(1, 1, 1), fresnel);
+
+        // Environment reflection (reflection probe / fallback)
+        float3 reflectDir = reflect(-viewDir, normalWS);
+        float mip = roughness * 6.0; // rough = blurry cubemap
+        float3 envReflection = float3(0, 0, 0);
+        #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
+            envReflection = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectDir, mip),
+                                       unity_SpecCube0_HDR);
+        #else
+            envReflection = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectDir, mip),
+                                       unity_SpecCube0_HDR);
+        #endif
+        float3 indirectSpecular = envReflection * envSpecColor * ao;
+
+        // ---- Combine ----
+        float3 finalColor = directDiffuse + ambientDiffuse
+                          + directSpecular + indirectSpecular
+                          + emission;
 
         // Fog
         UNITY_APPLY_FOG(IN.fogCoord, finalColor);
@@ -194,9 +288,8 @@ Shader "llcheesell/LEDScreen"
             "Queue" = "Geometry"
         }
 
-        // --------------------------------------------------------------------
-        // Pass: ForwardLit (URP)
-        // --------------------------------------------------------------------
+        Cull [_CullMode]
+
         Pass
         {
             Name "ForwardLit"
@@ -210,14 +303,10 @@ Shader "llcheesell/LEDScreen"
             ENDCG
         }
 
-        // --------------------------------------------------------------------
-        // Pass: DepthOnly (URP)
-        // --------------------------------------------------------------------
         Pass
         {
             Name "DepthOnly"
             Tags { "LightMode" = "DepthOnly" }
-
             ZWrite On
             ColorMask 0
 
@@ -228,14 +317,10 @@ Shader "llcheesell/LEDScreen"
             ENDCG
         }
 
-        // --------------------------------------------------------------------
-        // Pass: MotionVectors (URP)
-        // --------------------------------------------------------------------
         Pass
         {
             Name "MotionVectors"
             Tags { "LightMode" = "MotionVectors" }
-
             ColorMask RG
 
             CGPROGRAM
@@ -258,9 +343,8 @@ Shader "llcheesell/LEDScreen"
             "Queue" = "Geometry"
         }
 
-        // --------------------------------------------------------------------
-        // Pass: ForwardOnly (HDRP)
-        // --------------------------------------------------------------------
+        Cull [_CullMode]
+
         Pass
         {
             Name "ForwardOnly"
@@ -274,14 +358,10 @@ Shader "llcheesell/LEDScreen"
             ENDCG
         }
 
-        // --------------------------------------------------------------------
-        // Pass: DepthForwardOnly (HDRP)
-        // --------------------------------------------------------------------
         Pass
         {
             Name "DepthForwardOnly"
             Tags { "LightMode" = "DepthForwardOnly" }
-
             ZWrite On
             ColorMask 0
 
@@ -292,14 +372,10 @@ Shader "llcheesell/LEDScreen"
             ENDCG
         }
 
-        // --------------------------------------------------------------------
-        // Pass: MotionVectors (HDRP)
-        // --------------------------------------------------------------------
         Pass
         {
             Name "MotionVectors"
             Tags { "LightMode" = "MotionVectors" }
-
             ColorMask RG
 
             CGPROGRAM
@@ -321,9 +397,8 @@ Shader "llcheesell/LEDScreen"
             "Queue" = "Geometry"
         }
 
-        // --------------------------------------------------------------------
-        // Pass: ForwardBase (Built-in)
-        // --------------------------------------------------------------------
+        Cull [_CullMode]
+
         Pass
         {
             Name "ForwardBase"

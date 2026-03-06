@@ -5,16 +5,23 @@
 // UV Helpers
 // ============================================================================
 
-// InputTexture UV (Tiling/Offset applied)
+// Input Texture UV (Tiling/Offset from texture inspector)
 float2 GetInputUV(float2 baseUV)
 {
     return baseUV * _InputTex_ST.xy + _InputTex_ST.zw;
 }
 
-// LED texture UV (_LEDTiling specifies tile count)
+// LED texture UV (tile count from _LEDTilingX / _LEDTilingY)
 float2 GetLEDUV(float2 baseUV)
 {
-    return baseUV * _LEDTiling.xy;
+    return baseUV * float2(_LEDTilingX, _LEDTilingY);
+}
+
+// Base material UV (Tiling/Offset from BaseMap texture inspector)
+// Shared by BaseMap, NormalMap, and MaskMap
+float2 GetBaseUV(float2 baseUV)
+{
+    return baseUV * _BaseMap_ST.xy + _BaseMap_ST.zw;
 }
 
 // ============================================================================
@@ -74,12 +81,16 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
     // Sample input texture
     float4 inputColor = SAMPLE_TEXTURE2D(_InputTex, sampler_InputTex, inputUV);
 
+    // HDR intensity (squared for high-luminance compatibility, matches legacy)
+    float intensity = _IntensityMultiplier * _IntensityMultiplier;
+
     // Early return when fully faded — skip LED texture sampling
     UNITY_BRANCH
     if (fade >= 0.999)
     {
-        float3 result = inputColor.rgb * _IntensityMultiplier * _IntensityMultiplier;
+        float3 result = inputColor.rgb * intensity;
         result *= _DistantFadeBrightness.rgb;
+        result *= _EmissionColor.rgb;
         return float4(result, 1.0);
     }
 
@@ -97,12 +108,13 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
     float3 flatColor = inputColor.rgb;
     float3 ledColor  = lerp(subpixelColor, flatColor, fade);
 
-    // HDR intensity (squared for HDRP high-luminance compatibility, matches legacy)
-    float intensity = _IntensityMultiplier * _IntensityMultiplier;
     ledColor *= intensity;
 
     // Distant fade brightness correction
     ledColor = lerp(ledColor, ledColor * _DistantFadeBrightness.rgb, fade);
+
+    // Emission color tint
+    ledColor *= _EmissionColor.rgb;
 
     return float4(ledColor, 1.0);
 }
@@ -111,7 +123,7 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
 // Cabinet Grid
 // ============================================================================
 
-// _CabinetTiling: panel divided into cols x rows of cabinet modules
+// _CabinetColumns/_CabinetRows: panel divided into cols x rows of cabinet modules
 // _CabinetSeamWidth: seam width in UV space
 // _CabinetSeamDepth: normal map indent strength
 // _CabinetBrightnessVariance: per-cabinet luminance variation range
@@ -122,7 +134,8 @@ void ApplyCabinetGrid(
 {
     if (_CabinetGridEnabled < 0.5) return;
 
-    float2 cabinetUV = frac(uv * _CabinetTiling.xy);
+    float2 cabinetTiling = float2(_CabinetColumns, _CabinetRows);
+    float2 cabinetUV = frac(uv * cabinetTiling);
 
     // Seam mask: edges of each cabinet cell
     float2 edgeMask = step(1.0 - _CabinetSeamWidth, cabinetUV) +
@@ -135,7 +148,7 @@ void ApplyCabinetGrid(
     normalTS = normalize(normalTS);
 
     // Per-cabinet brightness variance (deterministic hash)
-    float2 cabinetID = floor(uv * _CabinetTiling.xy);
+    float2 cabinetID = floor(uv * cabinetTiling);
     float hash = frac(sin(dot(cabinetID, float2(127.1, 311.7))) * 43758.5453);
     float variance = (hash - 0.5) * _CabinetBrightnessVariance * 2.0;
     emissiveScale *= (1.0 + variance);

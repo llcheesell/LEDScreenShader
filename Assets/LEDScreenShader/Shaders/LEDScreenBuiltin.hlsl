@@ -13,8 +13,6 @@
 
 #ifndef TEXTURE2D_DEFINED
     #define TEXTURE2D_DEFINED
-    // In Built-in, textures are declared as sampler2D directly.
-    // The TEXTURE2D/SAMPLER macros are no-ops; declarations below handle it.
 #endif
 
 #define TransformObjectToWorld(pos) mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz
@@ -25,23 +23,49 @@
 // Dummy for compilation — Built-in has no MotionVectors pass
 #define LED_PREV_VP UNITY_MATRIX_VP
 
-// Built-in does not use CBUFFER for SRP Batcher (no SRP Batcher in Built-in)
+// ============================================================================
+// Texture declarations
+// ============================================================================
 sampler2D _InputTex;
 sampler2D _LEDTex;
 sampler2D _BaseMap;
 sampler2D _NormalMap;
 sampler2D _MaskMap;
 
-float4 _InputTex_ST;
-float4 _LEDTiling;
+// ============================================================================
+// Material properties
+// ============================================================================
+
+// Input Screen
+float4 _InputTex_ST;        // auto-generated from texture Tiling/Offset
+
+// LED Subpixel
+float  _LEDTilingX;
+float  _LEDTilingY;
+
+// Emission
+float4 _EmissionColor;
 float  _IntensityMultiplier;
+
+// Distant Fade
 float  _DistantFadeStart;
 float  _DistantFadeEnd;
 float4 _DistantFadeBrightness;
+
+// Cabinet Grid
 float  _CabinetGridEnabled;
-float4 _CabinetTiling;
+float  _CabinetColumns;
+float  _CabinetRows;
 float  _CabinetSeamWidth;
 float  _CabinetSeamDepth;
 float  _CabinetBrightnessVariance;
+
+// Surface Material
+float4 _BaseColor;
+float4 _BaseMap_ST;          // auto-generated from texture Tiling/Offset
+float  _NormalStrength;
+float  _Metallic;
+float  _Smoothness;
+float  _OcclusionStrength;
 
 #endif // LEDSCREEN_BUILTIN_INCLUDED
