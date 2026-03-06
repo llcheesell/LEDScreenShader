@@ -167,6 +167,10 @@ void ApplyCabinetGrid(
 // Outputs camera motion only — no object motion vectors.
 // This ensures LED screen does not interfere with TAA ghost rejection
 // of objects moving in front of it.
+//
+// Requires _PrevViewProjMatrix (set by URP MotionVectors render pass).
+// Built-in pipeline: no MotionVectors LightMode — pass never executes.
+// HDRP: may use a different variable name; motion vectors may be zero.
 
 struct MVAttributes
 {

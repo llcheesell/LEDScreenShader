@@ -11,29 +11,30 @@ public class LEDScreenShaderGUI : ShaderGUI
     // ========================================================================
     // Foldout state (persisted across inspector redraws via SessionState)
     // ========================================================================
-    static bool _foldInputScreen    = true;
-    static bool _foldLEDSubpixel    = true;
-    static bool _foldEmission       = true;
-    static bool _foldDistantFade    = true;
-    static bool _foldCabinetGrid    = false;
+    static bool _foldInputScreen     = true;
+    static bool _foldLEDSubpixel     = true;
+    static bool _foldEmission        = true;
+    static bool _foldDistantFade     = true;
+    static bool _foldCabinetGrid     = false;
     static bool _foldSurfaceMaterial = true;
-    static bool _foldRendering      = true;
+    static bool _foldRendering       = true;
 
     // ========================================================================
     // OnGUI
     // ========================================================================
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
-        Material material = materialEditor.target as Material;
-
         // ----------------------------------------------------------------
         // Input Screen
         // ----------------------------------------------------------------
         _foldInputScreen = Section("Input Screen", _foldInputScreen, () =>
         {
-            materialEditor.ShaderProperty(FindProp("_InputTex", properties), "Texture");
-            // Show Tiling/Offset for _InputTex
-            materialEditor.TextureScaleOffsetProperty(FindProp("_InputTex", properties));
+            MaterialProperty inputTex = FindProp("_InputTex", properties);
+            materialEditor.TexturePropertySingleLine(
+                new GUIContent("Texture"), inputTex);
+            EditorGUI.indentLevel += 2;
+            materialEditor.TextureScaleOffsetProperty(inputTex);
+            EditorGUI.indentLevel -= 2;
         });
 
         // ----------------------------------------------------------------
@@ -41,7 +42,9 @@ public class LEDScreenShaderGUI : ShaderGUI
         // ----------------------------------------------------------------
         _foldLEDSubpixel = Section("LED Subpixel", _foldLEDSubpixel, () =>
         {
-            materialEditor.ShaderProperty(FindProp("_LEDTex", properties), "LED Mask (RGB = subpixel mask)");
+            materialEditor.TexturePropertySingleLine(
+                new GUIContent("LED Mask (RGB = subpixel mask)"),
+                FindProp("_LEDTex", properties));
             materialEditor.ShaderProperty(FindProp("_LEDTilingX", properties), "LED Columns");
             materialEditor.ShaderProperty(FindProp("_LEDTilingY", properties), "LED Rows");
         });
@@ -66,7 +69,7 @@ public class LEDScreenShaderGUI : ShaderGUI
         });
 
         // ----------------------------------------------------------------
-        // Cabinet Grid (Toggle + Foldout combo)
+        // Cabinet Grid (Toggle + Foldout)
         // ----------------------------------------------------------------
         DrawCabinetGridSection(materialEditor, properties);
 
@@ -149,7 +152,7 @@ public class LEDScreenShaderGUI : ShaderGUI
     }
 
     // ========================================================================
-    // Cabinet Grid: checkbox in header + foldable content
+    // Cabinet Grid: foldout header with enable checkbox inside
     // ========================================================================
     void DrawCabinetGridSection(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
@@ -158,38 +161,26 @@ public class LEDScreenShaderGUI : ShaderGUI
         MaterialProperty enableProp = FindProp("_CabinetGridEnabled", properties);
         bool enabled = enableProp.floatValue > 0.5f;
 
-        // Draw a custom header with checkbox + foldout
-        Rect headerRect = GUILayoutUtility.GetRect(
-            GUIContent.none, EditorStyles.foldoutHeader);
-
-        // Checkbox rect (left side of header)
-        Rect checkRect = new Rect(headerRect.x + 18, headerRect.y, 16, headerRect.height);
-
-        // Handle checkbox click before foldout processes the event
-        Event evt = Event.current;
-        if (evt.type == EventType.MouseDown && checkRect.Contains(evt.mousePosition))
-        {
-            enableProp.floatValue = enabled ? 0.0f : 1.0f;
-            enabled = !enabled;
-            evt.Use();
-        }
-
-        // Draw foldout header
-        _foldCabinetGrid = EditorGUI.BeginFoldoutHeaderGroup(headerRect, _foldCabinetGrid, "    Cabinet Grid");
-
-        // Draw checkbox on top of the header
-        EditorGUI.showMixedValue = enableProp.hasMixedValue;
-        EditorGUI.BeginChangeCheck();
-        bool newEnabled = EditorGUI.Toggle(checkRect, enabled);
-        if (EditorGUI.EndChangeCheck())
-        {
-            enableProp.floatValue = newEnabled ? 1.0f : 0.0f;
-        }
-        EditorGUI.showMixedValue = false;
+        // Use standard foldout header
+        _foldCabinetGrid = EditorGUILayout.BeginFoldoutHeaderGroup(
+            _foldCabinetGrid, "Cabinet Grid");
 
         if (_foldCabinetGrid)
         {
             EditorGUI.indentLevel++;
+
+            // Enable checkbox as first item inside the group
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = enableProp.hasMixedValue;
+            bool newEnabled = EditorGUILayout.Toggle("Enable", enabled);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+            {
+                enableProp.floatValue = newEnabled ? 1.0f : 0.0f;
+                enabled = newEnabled;
+            }
+
+            // Grid settings — grayed out when disabled
             using (new EditorGUI.DisabledScope(!enabled))
             {
                 materialEditor.ShaderProperty(FindProp("_CabinetColumns", properties), "Columns");
@@ -198,6 +189,7 @@ public class LEDScreenShaderGUI : ShaderGUI
                 materialEditor.ShaderProperty(FindProp("_CabinetSeamDepth", properties), "Seam Depth");
                 materialEditor.ShaderProperty(FindProp("_CabinetBrightnessVariance", properties), "Brightness Variance");
             }
+
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();

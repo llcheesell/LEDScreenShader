@@ -224,7 +224,19 @@ Shader "llcheesell/LEDScreen"
         float mip = roughness * 6.0; // rough = blurry cubemap
         float3 envReflection = float3(0, 0, 0);
         #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
-            envReflection = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectDir, mip),
+            // Box projection: correct reflection direction for finite-size probes
+            float3 projDir = reflectDir;
+            UNITY_BRANCH
+            if (unity_SpecCube0_ProbePosition.w > 0.0)
+            {
+                float3 nrDir = normalize(reflectDir);
+                float3 rbmax = (unity_SpecCube0_BoxMax.xyz - IN.positionWS) / nrDir;
+                float3 rbmin = (unity_SpecCube0_BoxMin.xyz - IN.positionWS) / nrDir;
+                float3 rbminmax = (nrDir > 0.0) ? rbmax : rbmin;
+                float fa = min(min(rbminmax.x, rbminmax.y), rbminmax.z);
+                projDir = IN.positionWS - unity_SpecCube0_ProbePosition.xyz + nrDir * fa;
+            }
+            envReflection = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, projDir, mip),
                                        unity_SpecCube0_HDR);
         #else
             envReflection = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectDir, mip),
