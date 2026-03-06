@@ -21,7 +21,10 @@ float2 GetLEDUV(float2 baseUV)
 // Shared by BaseMap, NormalMap, and MaskMap
 float2 GetBaseUV(float2 baseUV)
 {
-    return baseUV * _BaseMap_ST.xy + _BaseMap_ST.zw;
+    if (_SurfaceUVLinkLED > 0.5)
+        return baseUV * float2(_LEDTilingX, _LEDTilingY);
+    else
+        return baseUV * _BaseMap_ST.xy + _BaseMap_ST.zw;
 }
 
 // ============================================================================

@@ -60,6 +60,8 @@ Shader "llcheesell/LEDScreen"
         [Space(10)]
         [Header(Surface Material)]
         [Space(5)]
+        [Toggle]
+        _SurfaceUVLinkLED ("Link UV to LED Tiling", Float) = 1.0
         _BaseColor      ("Base Color", Color)  = (1, 1, 1, 1)
         _BaseMap        ("Base Map",   2D)     = "black" {}
 
@@ -415,4 +417,5 @@ Shader "llcheesell/LEDScreen"
     }
 
     Fallback "Diffuse"
+    CustomEditor "LEDScreenShaderGUI"
 }

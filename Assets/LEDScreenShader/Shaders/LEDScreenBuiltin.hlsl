@@ -61,6 +61,7 @@ float  _CabinetSeamDepth;
 float  _CabinetBrightnessVariance;
 
 // Surface Material
+float  _SurfaceUVLinkLED;    // toggle: link surface UV to LED tiling
 float4 _BaseColor;
 float4 _BaseMap_ST;          // auto-generated from texture Tiling/Offset
 float  _NormalStrength;
