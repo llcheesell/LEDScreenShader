@@ -14,9 +14,11 @@ Material:
   m_ValidKeywords: []
   m_InvalidKeywords:
   - _ALPHATEST_ON
+  - _CABINETGRIDENABLED_ON
   - _DISABLE_DECALS
   - _DISABLE_SSR_TRANSPARENT
   - _ENABLE_FOG_ON_TRANSPARENT
+  - _SURFACEUVLINKLED_ON
   - _SURFACE_TYPE_TRANSPARENT
   - _UV_UV0
   m_LightmapFlags: 4
@@ -69,7 +71,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
         m_Texture: {fileID: 2800000, guid: cdb43915b2cf04400a9107000ca8ab26, type: 3}
-        m_Scale: {x: 1, y: 1}
+        m_Scale: {x: 100, y: 56}
         m_Offset: {x: 0, y: 0}
     - _InputTex:
         m_Texture: {fileID: 2800000, guid: a7640f15f7fe0074c9112958018e5b39, type: 3}
@@ -80,7 +82,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MaskMap:
-        m_Texture: {fileID: 2800000, guid: cdb43915b2cf04400a9107000ca8ab26, type: 3}
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -153,7 +155,9 @@ Material:
     - _AlphaToMaskInspectorValue: 0
     - _BlendMode: 0
     - _CabinetBrightnessVariance: 0
+    - _CabinetColumns: 10
     - _CabinetGridEnabled: 1
+    - _CabinetRows: 6
     - _CabinetSeamDepth: 0.3
     - _CabinetSeamWidth: 0.005
     - _ConservativeDepthOffsetEnable: 0
@@ -170,6 +174,11 @@ Material:
     - _EnableFogOnTransparent: 1
     - _ExcludeFromTUAndAA: 0
     - _IntensityMultiplier: 1.5
+    - _LEDTilingX: 100
+    - _LEDTilingY: 56
+    - _Metallic: 0.976
+    - _NormalStrength: 1
+    - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -179,6 +188,7 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
+    - _Smoothness: 0.434
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 0
@@ -192,6 +202,7 @@ Material:
     - _StencilWriteMaskMV: 41
     - _SupportDecals: 0
     - _SurfaceType: 1
+    - _SurfaceUVLinkLED: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -213,6 +224,7 @@ Material:
     - Vector2_ae16db7065034506a055993c41bbe614_1: {r: 0, g: 0, b: 0, a: 0}
     - Vector2_ea01576358e3410993f3b88f3d7e3a6b: {r: 100, g: 100, b: 0, a: 0}
     - Vector2_ea01576358e3410993f3b88f3d7e3a6b_1: {r: 1, g: 1, b: 0, a: 0}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _CabinetTiling: {r: 10, g: 10, b: 0, a: 0}
     - _DistantFadeBrightness: {r: 0.735849, g: 0.735849, b: 0.735849, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
