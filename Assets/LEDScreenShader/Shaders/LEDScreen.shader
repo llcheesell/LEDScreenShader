@@ -175,8 +175,9 @@ Shader "llcheesell/LEDScreen"
         half4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, baseTexUV);
         float metallic   = maskMap.r * _Metallic;
         float ao         = lerp(1.0, maskMap.g, _OcclusionStrength);
-        float smoothness = maskMap.a * _Smoothness;
-        float roughness  = 1.0 - smoothness;
+        float smoothness         = maskMap.a * _Smoothness;
+        float perceptualRoughness = 1.0 - smoothness;
+        float roughness           = max(perceptualRoughness * perceptualRoughness, HALF_MIN);
 
         // ---- Cabinet grid ----
         float emissiveScale = 1.0;
@@ -189,39 +190,55 @@ Shader "llcheesell/LEDScreen"
         half3x3 TBN = half3x3(IN.tangentWS.xyz, bitangent, IN.normalWS);
         half3 normalWS = normalize(mul(normalTS, TBN));
 
-        // ---- Lighting ----
+        // ---- Lighting (GGX / Cook-Torrance — matches Unity Standard) ----
         float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
+        float3 lightDir = _WorldSpaceLightPos0.xyz; // directional light
+
+        // Dot products
+        float NdotV = max(saturate(dot(normalWS, viewDir)), 1e-4);
+        float NdotL = saturate(dot(normalWS, lightDir));
+        float3 halfDir = normalize(lightDir + viewDir);
+        float NdotH = saturate(dot(normalWS, halfDir));
+        float LdotH = saturate(dot(lightDir, halfDir));
+
+        // Shadow & attenuation
+        UNITY_LIGHT_ATTENUATION(atten, IN, IN.positionWS);
 
         // Ambient (spherical harmonics)
         float3 ambient = ShadeSH9(float4(normalWS, 1.0));
 
-        // Main directional light
-        float NdotL = saturate(dot(normalWS, _WorldSpaceLightPos0.xyz));
-        UNITY_LIGHT_ATTENUATION(atten, IN, IN.positionWS);
-
-        // Diffuse
-        float3 diffuseAlbedo = baseColor.rgb * (1.0 - metallic);
-        float3 directDiffuse = diffuseAlbedo * _LightColor0.rgb * NdotL * atten;
-        float3 ambientDiffuse = diffuseAlbedo * ambient * ao;
-
-        // Specular (Blinn-Phong approximation)
-        float specPower = max(1.0, pow(8192.0, smoothness)); // perceptual mapping
-        float3 halfDir = normalize(_WorldSpaceLightPos0.xyz + viewDir);
-        float NdotH = saturate(dot(normalWS, halfDir));
-        float specIntensity = pow(NdotH, specPower) * smoothness;
-
         // F0: dielectric=0.04, metallic=baseColor
         float3 specColor = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
-        float3 directSpecular = specColor * _LightColor0.rgb * specIntensity * NdotL * atten;
 
-        // Fresnel (Schlick approximation) for environment reflection
-        float NdotV = saturate(dot(normalWS, viewDir));
-        float fresnel = pow(1.0 - NdotV, 5.0);
-        float3 envSpecColor = lerp(specColor, float3(1, 1, 1), fresnel);
+        // Diffuse albedo (energy conserving: metals have no diffuse)
+        float3 diffuseAlbedo = baseColor.rgb * (1.0 - metallic);
+
+        // --- Direct lighting (GGX specular + Lambert diffuse) ---
+        // GGX normal distribution
+        float D = GGXTerm(NdotH, roughness);
+        // Smith-GGX visibility (G / (4 * NdotL * NdotV))
+        float V = SmithJointGGXVisibilityTerm(NdotL, NdotV, roughness);
+        // Fresnel (Schlick)
+        float3 F = FresnelTerm(specColor, LdotH);
+
+        float3 directSpecular = D * V * F * UNITY_PI; // cook-torrance
+        directSpecular = max(0.0, directSpecular);
+        float3 directDiffuse = diffuseAlbedo;
+
+        float3 directLighting = (directDiffuse + directSpecular)
+                              * _LightColor0.rgb * NdotL * atten;
+
+        // --- Indirect lighting ---
+        float3 ambientDiffuse = diffuseAlbedo * ambient * ao;
+
+        // Fresnel for environment reflection (view-dependent)
+        float surfaceReduction = 1.0 / (roughness * roughness + 1.0);
+        float grazingTerm = saturate(smoothness + (1.0 - max(max(specColor.r, specColor.g), specColor.b)));
+        float3 envFresnel = FresnelLerp(specColor, grazingTerm, NdotV);
 
         // Environment reflection (reflection probe / fallback)
         float3 reflectDir = reflect(-viewDir, normalWS);
-        float mip = roughness * 6.0; // rough = blurry cubemap
+        float mip = perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
         float3 envReflection = float3(0, 0, 0);
         #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
             // Box projection: correct reflection direction for finite-size probes
@@ -242,11 +259,11 @@ Shader "llcheesell/LEDScreen"
             envReflection = DecodeHDR(UNITY_SAMPLE_TEXCUBE_LOD(unity_SpecCube0, reflectDir, mip),
                                        unity_SpecCube0_HDR);
         #endif
-        float3 indirectSpecular = envReflection * envSpecColor * ao;
+        float3 indirectSpecular = envReflection * envFresnel * surfaceReduction * ao;
 
         // ---- Combine ----
-        float3 finalColor = directDiffuse + ambientDiffuse
-                          + directSpecular + indirectSpecular
+        float3 finalColor = directLighting + ambientDiffuse
+                          + indirectSpecular
                           + emission;
 
         // Fog

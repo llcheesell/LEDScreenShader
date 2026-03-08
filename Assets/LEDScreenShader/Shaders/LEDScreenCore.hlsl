@@ -164,13 +164,20 @@ void ApplyCabinetGrid(
 // Motion Vectors (camera-only)
 // ============================================================================
 
-// Outputs camera motion only — no object motion vectors.
-// This ensures LED screen does not interfere with TAA ghost rejection
-// of objects moving in front of it.
+// Outputs camera motion only — no per-object motion vectors.
+// LED screen is assumed static; only camera motion appears.
 //
-// Requires _PrevViewProjMatrix (set by URP MotionVectors render pass).
+// CRITICAL: both current and previous clip-space positions must use
+// **non-jittered** VP matrices.  TransformWorldToHClip() uses the
+// jittered UNITY_MATRIX_VP when TAA is active, so using it for
+// currentCS would embed per-frame jitter offsets into the motion
+// vector, causing TAA/DLSS to misalign temporal samples and produce
+// ghosting on high-contrast emissive content.
+//
+// LED_NONJITTERED_VP = _NonJitteredViewProjMatrix (current frame, no jitter)
+// LED_PREV_VP        = _PrevViewProjMatrix        (previous frame, no jitter)
+//
 // Built-in pipeline: no MotionVectors LightMode — pass never executes.
-// HDRP: may use a different variable name; motion vectors may be zero.
 
 struct MVAttributes
 {
@@ -192,12 +199,16 @@ MVVaryings vertMotionVectors(MVAttributes input)
 
     float3 posWS = TransformObjectToWorld(input.positionOS.xyz);
 
-    // Current frame clip space
+    // SV_POSITION must use the (possibly jittered) VP so the pixel
+    // lands at the correct rasterisation position.
     output.positionCS = TransformWorldToHClip(posWS);
-    output.currentCS  = output.positionCS;
 
-    // Previous frame clip space using previous VP matrix
-    // Object transform is identical (static surface) => only camera motion appears
+    // Motion-vector calculation: both frames use NON-JITTERED VP
+    // so the delta represents only real camera motion.
+    output.currentCS  = mul(LED_NONJITTERED_VP, float4(posWS, 1.0));
+
+    // Previous frame — same world position (static surface),
+    // different camera VP.
     output.previousCS = mul(LED_PREV_VP, float4(posWS, 1.0));
 
     return output;

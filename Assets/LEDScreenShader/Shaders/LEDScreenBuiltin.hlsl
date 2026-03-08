@@ -21,12 +21,19 @@
 // Pipeline abstraction macros
 #define LED_FOV_COT unity_CameraProjection[1][1]
 
-// Previous-frame View-Projection matrix for MotionVectors pass.
-// In URP, the render pipeline sets this global variable per-frame.
+// Motion-vector matrices for MotionVectors pass.
+// URP / HDRP set these globals per-frame.
 // In Built-in, no MotionVectors LightMode exists so the pass never runs.
-// In HDRP, the variable name may differ — motion vectors may be zero.
+//
+// _NonJitteredViewProjMatrix : current-frame VP **without** TAA jitter
+// _PrevViewProjMatrix        : previous-frame VP (also non-jittered)
+//
+// Both must be non-jittered so that the motion-vector delta contains
+// only real camera/object motion, not per-frame TAA sub-pixel offsets.
+float4x4 _NonJitteredViewProjMatrix;
 float4x4 _PrevViewProjMatrix;
-#define LED_PREV_VP _PrevViewProjMatrix
+#define LED_NONJITTERED_VP _NonJitteredViewProjMatrix
+#define LED_PREV_VP        _PrevViewProjMatrix
 
 // ============================================================================
 // Texture declarations
