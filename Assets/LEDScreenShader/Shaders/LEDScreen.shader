@@ -177,7 +177,7 @@ Shader "llcheesell/LEDScreen"
         float ao         = lerp(1.0, maskMap.g, _OcclusionStrength);
         float smoothness         = maskMap.a * _Smoothness;
         float perceptualRoughness = 1.0 - smoothness;
-        float roughness           = max(perceptualRoughness * perceptualRoughness, HALF_MIN);
+        float roughness           = max(perceptualRoughness * perceptualRoughness, 6.103515625e-5);
 
         // ---- Cabinet grid ----
         float emissiveScale = 1.0;
