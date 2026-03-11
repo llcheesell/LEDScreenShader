@@ -1,9 +1,7 @@
 {
     "name": "LEDScreenShader.Editor",
     "rootNamespace": "",
-    "references": [
-        "LEDScreenShader"
-    ],
+    "references": [],
     "includePlatforms": [
         "Editor"
     ],

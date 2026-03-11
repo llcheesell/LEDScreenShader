@@ -305,6 +305,38 @@ Shader "llcheesell/LEDScreen"
 
     // MotionVectors: vertMotionVectors / fragMotionVectors defined in LEDScreenCore.hlsl
 
+    // ------------------------------------------------------------------
+    // ShadowCaster pass (Built-in パイプライン用)
+    //
+    // V2F_SHADOW_CASTER / TRANSFER_SHADOW_CASTER_NORMALOFFSET /
+    // SHADOW_CASTER_FRAGMENT は Built-in パイプライン専用のマクロ。
+    // unity_LightShadowBias を用いて頂点シェーダーでバイアスを適用する。
+    //
+    // HDRP/URP ではバイアスをシャドウサンプリング時に処理するため、
+    // これらのマクロは使用せず、vertDepth/fragDepth を流用する。
+    // ------------------------------------------------------------------
+    struct ShadowVaryings
+    {
+        V2F_SHADOW_CASTER;
+        UNITY_VERTEX_INPUT_INSTANCE_ID
+        UNITY_VERTEX_OUTPUT_STEREO
+    };
+
+    ShadowVaryings vertShadow(appdata_base v)
+    {
+        ShadowVaryings o;
+        UNITY_SETUP_INSTANCE_ID(v);
+        UNITY_TRANSFER_INSTANCE_ID(v, o);
+        UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
+        TRANSFER_SHADOW_CASTER_NORMALOFFSET(o)
+        return o;
+    }
+
+    float4 fragShadow(ShadowVaryings i) : SV_Target
+    {
+        SHADOW_CASTER_FRAGMENT(i)
+    }
+
     ENDCG
 
     // ========================================================================
@@ -350,16 +382,29 @@ Shader "llcheesell/LEDScreen"
 
         Pass
         {
-            Name "MotionVectors"
-            Tags { "LightMode" = "MotionVectors" }
-            ColorMask RG
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
 
+            // URP はシャドウバイアスをサンプリング時に適用するため、
+            // 頂点シェーダーでは単純に深度を書き込むだけで良い。
+            // Built-in 用の V2F_SHADOW_CASTER / TRANSFER_SHADOW_CASTER_NORMALOFFSET は
+            // URP では不正なバイアスの原因となるため使用しない。
             CGPROGRAM
-            #pragma vertex vertMotionVectors
-            #pragma fragment fragMotionVectors
+            #pragma vertex vertDepth
+            #pragma fragment fragDepth
             #pragma multi_compile_instancing
             ENDCG
         }
+
+        // MotionVectors パスは意図的に省略。
+        // URP は MotionVectors パスが無いオブジェクトに対して
+        // カメラモーションベクターを自動的に適用する。
+        // CGPROGRAM ベースのカスタム実装は、UNITY_UV_STARTS_AT_TOP の
+        // Y フリップ処理がパイプラインの期待と一致せず、
+        // TAA/DLSS ゴーストの原因となるため除去した。
     }
 
     // ========================================================================
@@ -405,16 +450,63 @@ Shader "llcheesell/LEDScreen"
 
         Pass
         {
-            Name "MotionVectors"
-            Tags { "LightMode" = "MotionVectors" }
-            ColorMask RG
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
 
-            CGPROGRAM
-            #pragma vertex vertMotionVectors
-            #pragma fragment fragMotionVectors
+            // HDRP のシャドウマップレンダリングでは、ライトの VP マトリクスが
+            // SRP 固有の定数バッファ (ShaderVariablesGlobal) で設定される。
+            // CGPROGRAM は UnityCG.cginc の変数宣言レイアウトが
+            // HDRP の定数バッファと競合し、シャドウマップに不正な深度値が
+            // 書き込まれるため、HLSLPROGRAM + HDRP インクルードを使用する。
+            //
+            // ShaderVariables.hlsl は以下を推移的にインクルード:
+            //   - UnityInstancing.hlsl (インスタンシング対応)
+            //   - SpaceTransforms.hlsl (TransformObjectToWorld, TransformWorldToHClip)
+            HLSLPROGRAM
+            #pragma vertex VertShadowHDRP
+            #pragma fragment FragShadowHDRP
             #pragma multi_compile_instancing
-            ENDCG
+            #pragma instancing_options renderinglayer
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            struct ShadowAttributesHDRP
+            {
+                float3 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct ShadowVaryingsHDRP
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            ShadowVaryingsHDRP VertShadowHDRP(ShadowAttributesHDRP input)
+            {
+                ShadowVaryingsHDRP output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                float3 positionRWS = TransformObjectToWorld(input.positionOS);
+                output.positionCS = TransformWorldToHClip(positionRWS);
+                return output;
+            }
+
+            half4 FragShadowHDRP(ShadowVaryingsHDRP input) : SV_TARGET
+            {
+                return 0;
+            }
+            ENDHLSL
         }
+
+        // MotionVectors パスは意図的に省略。
+        // HDRP は MotionVectors パスが無いオブジェクトに対して
+        // 深度バッファからカメラモーションベクターを再構築する。
+        // 静的な LED スクリーンにはこれで十分であり、
+        // CGPROGRAM からの _NonJitteredViewProjMatrix 参照や
+        // Y フリップ処理の不整合によるゴーストアーティファクトを回避できる。
     }
 
     // ========================================================================
@@ -440,6 +532,22 @@ Shader "llcheesell/LEDScreen"
             #pragma fragment frag
             #pragma multi_compile_fwdbase
             #pragma multi_compile_fog
+            #pragma multi_compile_instancing
+            ENDCG
+        }
+
+        Pass
+        {
+            Name "ShadowCaster"
+            Tags { "LightMode" = "ShadowCaster" }
+            ZWrite On
+            ZTest LEqual
+            ColorMask 0
+
+            CGPROGRAM
+            #pragma vertex vertShadow
+            #pragma fragment fragShadow
+            #pragma multi_compile_shadowcaster
             #pragma multi_compile_instancing
             ENDCG
         }

@@ -161,23 +161,21 @@ void ApplyCabinetGrid(
 }
 
 // ============================================================================
-// Motion Vectors (camera-only)
+// Motion Vectors (camera-only) — 現在未使用
 // ============================================================================
-
-// Outputs camera motion only — no per-object motion vectors.
-// LED screen is assumed static; only camera motion appears.
 //
-// CRITICAL: both current and previous clip-space positions must use
-// **non-jittered** VP matrices.  TransformWorldToHClip() uses the
-// jittered UNITY_MATRIX_VP when TAA is active, so using it for
-// currentCS would embed per-frame jitter offsets into the motion
-// vector, causing TAA/DLSS to misalign temporal samples and produce
-// ghosting on high-contrast emissive content.
+// 注意: URP/HDRP SubShader では MotionVectors パスを除去済み。
+// 各パイプラインは MotionVectors パスが無いオブジェクトに対して、
+// 深度バッファからカメラモーションベクターを自動再構築する。
+// 静的な LED スクリーンにはこれで十分。
 //
-// LED_NONJITTERED_VP = _NonJitteredViewProjMatrix (current frame, no jitter)
-// LED_PREV_VP        = _PrevViewProjMatrix        (previous frame, no jitter)
+// CGPROGRAM ベースの実装には以下の問題があった:
+// - UNITY_UV_STARTS_AT_TOP による Y フリップがパイプライン内部の処理と競合
+// - _NonJitteredViewProjMatrix の値がパイプラインによって異なる設定タイミング
+// - 高コントラスト発光面で TAA/DLSS ゴーストの原因となっていた
 //
-// Built-in pipeline: no MotionVectors LightMode — pass never executes.
+// 将来、オブジェクトモーション対応が必要になった場合は、
+// HLSLPROGRAM + パイプライン固有のインクルードで再実装すること。
 
 struct MVAttributes
 {
