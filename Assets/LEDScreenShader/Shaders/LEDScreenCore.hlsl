@@ -1,6 +1,8 @@
 #ifndef LEDSCREEN_CORE_INCLUDED
 #define LEDSCREEN_CORE_INCLUDED
 
+#include "LEDScreenProceduralLED.hlsl"
+
 // ============================================================================
 // UV Helpers
 // ============================================================================
@@ -47,47 +49,57 @@ float GetFOVAdjustedDistance(float3 worldPos)
 float ComputeDistantFade(float3 worldPos)
 {
     float adjDist = GetFOVAdjustedDistance(worldPos);
-    return saturate((adjDist - _DistantFadeStart) /
-                    max(_DistantFadeEnd - _DistantFadeStart, 0.001));
+    float t = saturate((adjDist - _DistantFadeStart) /
+                       max(_DistantFadeEnd - _DistantFadeStart, 0.001));
+    // smoothstep カーブで自然な遷移（線形より滑らかなフェード）
+    return t * t * (3.0 - 2.0 * t);
 }
 
 // ============================================================================
 // DDX/DDY Auto-Fade
 // ============================================================================
 
-// When LED dots are sub-pixel on screen, auto-fade to flat emission.
-// More precise than DistantFader: handles resolution, FOV, and oblique angles.
+// LED ドットがスクリーン上でサブピクセル化した際、フラットエミッションにフェード。
+// DistantFader より精密: 解像度、FOV、斜め視線角を考慮。
+//
+// TAA/DLSS 対策: ドットが完全にサブピクセル化する前にフェードを開始し、
+// テンポラルフリッカーを防止する。smoothstep でより滑らかな遷移を実現。
 float ComputeAutoFade(float2 ledUV)
 {
     float2 dx = ddx(ledUV);
     float2 dy = ddy(ledUV);
     float coverage = max(length(dx), length(dy));
 
-    // coverage < 0.7: LED dots are well-resolved on screen => no fade
-    // coverage > 1.3: sub-pixel => full fade
-    return saturate((coverage - 0.7) / 0.6);
+    // coverage < 0.3: LED ドットが十分解像 => フェードなし
+    // coverage > 0.8: サブピクセル化 => 完全フェード
+    // smoothstep で TAA/DLSS に優しい滑らかな遷移カーブ
+    return smoothstep(0.3, 0.8, coverage);
 }
 
 // ============================================================================
 // Subpixel LED Rendering (Core)
 // ============================================================================
 
-// LED texture RGB channels serve as per-subpixel masks:
-//   R channel: red subpixel area   (white = lit, black = off)
-//   G channel: green subpixel area
-//   B channel: blue subpixel area
+// ============================================================================
+// LED サブピクセルレンダリング
 //
-// Input texture RGB is multiplied per-channel with these masks,
-// so a red input lights only the red subpixels — matching real LED panels.
+// 2つのモードをサポート:
+//   1. プロシージャルモード (_ProceduralLEDEnabled = 1):
+//      SDF ベースで LED ドットを動的に描画。エネルギー補償付き。
+//   2. テクスチャモード (_ProceduralLEDEnabled = 0):
+//      従来の _LEDTex RGB マスクによるサブピクセル描画。
+//
+// 両モードとも共通のフェード処理で遠距離/サブピクセル時にフラットエミッションに遷移。
+// ============================================================================
 float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
 {
-    // Sample input texture
+    // 入力テクスチャサンプリング
     float4 inputColor = SAMPLE_TEXTURE2D(_InputTex, sampler_InputTex, inputUV);
 
-    // HDR intensity (squared for high-luminance compatibility, matches legacy)
+    // HDR 強度（二乗で高輝度互換性を維持、レガシー互換）
     float intensity = _IntensityMultiplier * _IntensityMultiplier;
 
-    // Early return when fully faded — skip LED texture sampling
+    // 完全フェード時は LED 処理をスキップ
     UNITY_BRANCH
     if (fade >= 0.999)
     {
@@ -97,26 +109,39 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
         return float4(result, 1.0);
     }
 
-    // Sample LED subpixel mask
-    float4 ledMask = SAMPLE_TEXTURE2D(_LEDTex, sampler_LEDTex, ledUV);
+    // --- サブピクセルカラー計算（モード分岐） ---
+    float3 subpixelColor;
 
-    // Per-channel multiplication: input.r * mask.r, input.g * mask.g, input.b * mask.b
-    float3 subpixelColor = float3(
-        inputColor.r * ledMask.r,
-        inputColor.g * ledMask.g,
-        inputColor.b * ledMask.b
-    );
+    UNITY_BRANCH
+    if (_ProceduralLEDEnabled > 0.5)
+    {
+        // プロシージャルモード: SDF ベースの LED ドット描画
+        // エネルギー補償付きで、ドット面積に反比例した高輝度を実現
+        subpixelColor = ProceduralSubpixelLED(ledUV, inputColor.rgb);
+    }
+    else
+    {
+        // テクスチャモード: 従来の LED マスクテクスチャによる描画
+        float4 ledMask = SAMPLE_TEXTURE2D(_LEDTex, sampler_LEDTex, ledUV);
+        subpixelColor = float3(
+            inputColor.r * ledMask.r,
+            inputColor.g * ledMask.g,
+            inputColor.b * ledMask.b
+        );
+    }
 
-    // Blend: close = subpixel LED, far = flat emission
+    // --- 共通フェード処理 ---
+    // 近距離: サブピクセル LED（高コントラスト）
+    // 遠距離: フラットエミッション（入力色そのまま）
     float3 flatColor = inputColor.rgb;
     float3 ledColor  = lerp(subpixelColor, flatColor, fade);
 
     ledColor *= intensity;
 
-    // Distant fade brightness correction
+    // 遠距離輝度補正
     ledColor = lerp(ledColor, ledColor * _DistantFadeBrightness.rgb, fade);
 
-    // Emission color tint
+    // エミッションカラーティント
     ledColor *= _EmissionColor.rgb;
 
     return float4(ledColor, 1.0);

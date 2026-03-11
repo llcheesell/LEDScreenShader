@@ -21,6 +21,19 @@ Shader "llcheesell/LEDScreen"
         _LEDTilingY       ("LED Rows",    Float)  = 56
 
         // =====================================================================
+        // Procedural LED
+        // =====================================================================
+        [Space(10)]
+        [Header(Procedural LED)]
+        [Space(5)]
+        [Toggle]
+        _ProceduralLEDEnabled  ("Enable Procedural LED", Float) = 1.0
+        _ProceduralDotRadius   ("Dot Radius", Range(0.3, 1.0)) = 0.8
+        _ProceduralHotspotStrength ("Hotspot Strength", Range(0, 1)) = 0.3
+        _ProceduralGlowRadius  ("Glow Radius", Range(0, 0.5)) = 0.1
+        _ProceduralGlowIntensity ("Glow Intensity", Range(0, 1)) = 0.15
+
+        // =====================================================================
         // Emission
         // =====================================================================
         [Space(10)]
@@ -28,7 +41,7 @@ Shader "llcheesell/LEDScreen"
         [Space(5)]
         [HDR]
         _EmissionColor         ("Emission Color", Color) = (1,1,1,1)
-        _IntensityMultiplier   ("Intensity", Range(0.1, 10)) = 1.0
+        _IntensityMultiplier   ("Intensity", Range(0.1, 50)) = 1.0
 
         // =====================================================================
         // Distant Fade

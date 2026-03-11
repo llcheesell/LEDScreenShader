@@ -13,6 +13,7 @@ public class LEDScreenShaderGUI : ShaderGUI
     // ========================================================================
     static bool _foldInputScreen     = true;
     static bool _foldLEDSubpixel     = true;
+    static bool _foldProceduralLED   = true;
     static bool _foldEmission        = true;
     static bool _foldDistantFade     = true;
     static bool _foldCabinetGrid     = false;
@@ -42,12 +43,28 @@ public class LEDScreenShaderGUI : ShaderGUI
         // ----------------------------------------------------------------
         _foldLEDSubpixel = Section("LED Subpixel", _foldLEDSubpixel, () =>
         {
-            materialEditor.TexturePropertySingleLine(
-                new GUIContent("LED Mask (RGB = subpixel mask)"),
-                FindProp("_LEDTex", properties));
+            // プロシージャルモード有効時は LED テクスチャを非表示
+            MaterialProperty procEnabled = FindProp("_ProceduralLEDEnabled", properties);
+            if (procEnabled.floatValue < 0.5f)
+            {
+                materialEditor.TexturePropertySingleLine(
+                    new GUIContent("LED Mask (RGB = subpixel mask)"),
+                    FindProp("_LEDTex", properties));
+            }
+            else
+            {
+                EditorGUILayout.HelpBox(
+                    "プロシージャルモード有効。LED テクスチャは使用されません。",
+                    MessageType.Info);
+            }
             materialEditor.ShaderProperty(FindProp("_LEDTilingX", properties), "LED Columns");
             materialEditor.ShaderProperty(FindProp("_LEDTilingY", properties), "LED Rows");
         });
+
+        // ----------------------------------------------------------------
+        // Procedural LED (Toggle + Foldout)
+        // ----------------------------------------------------------------
+        DrawProceduralLEDSection(materialEditor, properties);
 
         // ----------------------------------------------------------------
         // Emission
@@ -149,6 +166,49 @@ public class LEDScreenShaderGUI : ShaderGUI
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         return foldout;
+    }
+
+    // ========================================================================
+    // Procedural LED: foldout header with enable checkbox inside
+    // ========================================================================
+    void DrawProceduralLEDSection(MaterialEditor materialEditor, MaterialProperty[] properties)
+    {
+        EditorGUILayout.Space(4);
+
+        MaterialProperty enableProp = FindProp("_ProceduralLEDEnabled", properties);
+        bool enabled = enableProp.floatValue > 0.5f;
+
+        // 標準のフォールドアウトヘッダー
+        _foldProceduralLED = EditorGUILayout.BeginFoldoutHeaderGroup(
+            _foldProceduralLED, "Procedural LED");
+
+        if (_foldProceduralLED)
+        {
+            EditorGUI.indentLevel++;
+
+            // 有効/無効チェックボックス
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = enableProp.hasMixedValue;
+            bool newEnabled = EditorGUILayout.Toggle("Enable", enabled);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+            {
+                enableProp.floatValue = newEnabled ? 1.0f : 0.0f;
+                enabled = newEnabled;
+            }
+
+            // プロシージャル LED パラメータ — 無効時はグレーアウト
+            using (new EditorGUI.DisabledScope(!enabled))
+            {
+                materialEditor.ShaderProperty(FindProp("_ProceduralDotRadius", properties), "Dot Radius");
+                materialEditor.ShaderProperty(FindProp("_ProceduralHotspotStrength", properties), "Hotspot Strength");
+                materialEditor.ShaderProperty(FindProp("_ProceduralGlowRadius", properties), "Glow Radius");
+                materialEditor.ShaderProperty(FindProp("_ProceduralGlowIntensity", properties), "Glow Intensity");
+            }
+
+            EditorGUI.indentLevel--;
+        }
+        EditorGUILayout.EndFoldoutHeaderGroup();
     }
 
     // ========================================================================

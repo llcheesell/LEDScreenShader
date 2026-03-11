@@ -72,6 +72,13 @@ float  _CabinetSeamWidth;
 float  _CabinetSeamDepth;
 float  _CabinetBrightnessVariance;
 
+// Procedural LED
+float  _ProceduralLEDEnabled;        // トグル: 0=テクスチャ, 1=プロシージャル
+float  _ProceduralDotRadius;         // ドット半径 (0.3..1.0)
+float  _ProceduralHotspotStrength;   // 中心ホットスポット (0..1)
+float  _ProceduralGlowRadius;        // グロー半径 (0..0.5)
+float  _ProceduralGlowIntensity;     // グロー強度 (0..1)
+
 // Surface Material
 float  _SurfaceUVLinkLED;    // toggle: link surface UV to LED tiling
 float4 _BaseColor;
