@@ -28,7 +28,7 @@ Shader "llcheesell/LEDScreen"
         [Space(5)]
         [Toggle]
         _ProceduralLEDEnabled  ("Enable Procedural LED", Float) = 1.0
-        [Enum(Triangle Delta,0,Horizontal Stripe,1,Vertical Rectangle,2)]
+        [Enum(Honeycomb Triangle,0,Horizontal Stripe,1,Vertical Rectangle,2)]
         _ProceduralLEDPattern  ("Pattern", Float) = 0
         _ProceduralDotRadius   ("Dot Radius", Range(0.3, 1.0)) = 0.8
         _ProceduralHotspotStrength ("Hotspot Strength", Range(0, 1)) = 0.3

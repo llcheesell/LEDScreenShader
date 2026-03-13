@@ -60,7 +60,7 @@ float  _CabinetBrightnessVariance;
 
 // Procedural LED
 float  _ProceduralLEDEnabled;        // トグル: 0=テクスチャ, 1=プロシージャル
-float  _ProceduralLEDPattern;        // 0=TriDelta, 1=HStripe, 2=VRect
+float  _ProceduralLEDPattern;        // 0=Honeycomb, 1=HStripe, 2=VRect
 float  _ProceduralDotRadius;         // ドット半径 (0.3..1.0)
 float  _ProceduralHotspotStrength;   // 中心ホットスポット (0..1)
 float  _ProceduralGlowRadius;        // グロー半径 (0..0.5)

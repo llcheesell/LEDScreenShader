@@ -7,7 +7,9 @@
 // SDF ベースで LED ドットを動的に描画。テクスチャ不要。
 //
 // パターン:
-//   0 = Triangle Delta (三角形配置) — デフォルト
+//   0 = Honeycomb Triangle (ハニカム三角形配置) — デフォルト
+//       RGB ドットを正三角形に配置し、六角格子で蜂の巣状にタイリング。
+//       偶数行は逆三角 ▽、奇数行は正三角 △ + X 半セルオフセット。
 //   1 = Horizontal Stripe (水平ストライプ — 従来互換)
 //   2 = Vertical Rectangle (縦長矩形)
 //
@@ -37,9 +39,9 @@ float SDFRoundedRect(float2 p, float2 center, float2 halfSize, float cornerRadiu
 // ----------------------------------------------------------------------------
 // アンチエイリアス付き SDF マスク
 // ----------------------------------------------------------------------------
-float AntiAliasedSDFMask(float sdf, float2 ledUV)
+float AntiAliasedSDFMask(float sdf, float2 sdfUV)
 {
-    float pixelWidth = max(length(ddx(ledUV)), length(ddy(ledUV)));
+    float pixelWidth = max(length(ddx(sdfUV)), length(ddy(sdfUV)));
     float aaWidth = max(pixelWidth * 0.5, 0.001);
     return 1.0 - smoothstep(-aaWidth, aaWidth, sdf);
 }
@@ -79,38 +81,81 @@ float3 ProceduralSubpixelLED(float2 ledUV, float3 inputColor)
     float glowIntensity = _ProceduralGlowIntensity;
     float highlightStr  = _ProceduralHighlightStrength;
 
-    // サブピクセル幅 (セルを RGB 3 分割)
-    float subW = 1.0 / 3.0;
-
-    // --- セル座標計算 ---
-    float2 adjUV = ledUV;
-
-    // Triangle Delta: 奇数行を半セルオフセットして三角形配置
-    UNITY_BRANCH
-    if (pattern == 0)
-    {
-        float row = floor(ledUV.y);
-        float isOddRow = step(0.25, frac(row * 0.5));
-        adjUV.x += isOddRow * 0.5;
-    }
-
-    float2 cellUV = frac(adjUV);
-
-    // --- サブピクセル中心座標 ---
-    // R: x=1/6, G: x=3/6, B: x=5/6, Y: 全て 0.5
-    float2 cR = float2(subW * 0.5, 0.5);
-    float2 cG = float2(subW * 1.5, 0.5);
-    float2 cB = float2(subW * 2.5, 0.5);
-
-    // --- パターン別 SDF + エネルギー補償 ---
+    // --- パターン別: セル UV、ドット中心、SDF、エネルギー補償 ---
     float3 sdf;
     float3 centerDist; // 正規化中心距離 (0=エッジ, 1=中心)
     float energyComp;
+    float2 sdfUV = ledUV; // AA 計算用 UV (パターンにより上書き)
 
     UNITY_BRANCH
-    if (pattern == 2)
+    if (pattern == 0)
     {
-        // ── Vertical Rectangle ──
+        // ============================================================
+        // ── Honeycomb Triangle (ハニカム三角形配置) ──
+        //
+        // 六角格子アスペクト補正:
+        //   Y 軸を 2/sqrt(3) ≈ 1.1547 で拡大し、
+        //   各セルの実効高さを sqrt(3)/2 ≈ 0.866 に圧縮。
+        //   これにより六角格子の行間隔に近い比率になる。
+        //
+        // ドット配置:
+        //   セル内で RGB 3 ドットが正三角形を形成。
+        //   底辺 0.5、高さ sqrt(3)/4 ≈ 0.433。
+        //   偶数行: ▽ (R 左上, B 右上, G 中央下)
+        //   奇数行: △ (R 左下, B 右下, G 中央上) + X 0.5 オフセット
+        //
+        //   隣接セルのドットが視覚的に蜂の巣パターンを形成。
+        // ============================================================
+
+        // Hex aspect correction
+        float2 hexUV = ledUV;
+        hexUV.y *= 1.1547005; // 2.0 / sqrt(3.0)
+
+        float row = floor(hexUV.y);
+        float isOddRow = step(0.25, frac(row * 0.5));
+        hexUV.x += isOddRow * 0.5;
+
+        float2 cellUV = frac(hexUV);
+        sdfUV = hexUV;
+
+        // 正三角形の頂点座標 (セル中央配置)
+        // base = 0.5, height = sqrt(3)/4 ≈ 0.433
+        // Y 範囲: [0.5 - 0.217, 0.5 + 0.217] = [0.283, 0.717]
+        float yTop = 0.283;
+        float yBot = 0.717;
+
+        // 偶数行 ▽: R(左上) B(右上) G(中央下)
+        // 奇数行 △: R(左下) B(右下) G(中央上)
+        float2 cR = float2(0.25, lerp(yTop, yBot, isOddRow));
+        float2 cG = float2(0.50, lerp(yBot, yTop, isOddRow));
+        float2 cB = float2(0.75, lerp(yTop, yBot, isOddRow));
+
+        // ドット半径: 最大 dotRadius=1.0 で sr=0.22
+        // ドット境界: yTop - sr = 0.063, 1.0 - yBot - sr = 0.063 → セル内に収まる
+        float sr = dotRadius * 0.22;
+
+        sdf.x = SDFCircle(cellUV, cR, sr);
+        sdf.y = SDFCircle(cellUV, cG, sr);
+        sdf.z = SDFCircle(cellUV, cB, sr);
+
+        centerDist = saturate(-sdf / max(sr, 0.001));
+
+        // エネルギー補償: 各ドットがセルの 1/3 を担当
+        // comp = (1/3) / (π × sr²) → ドット面積に反比例
+        energyComp = min((1.0 / 3.0) / max(3.14159265 * sr * sr, 0.001), 20.0);
+    }
+    else if (pattern == 2)
+    {
+        // ============================================================
+        // ── Vertical Rectangle (縦長矩形) ──
+        // ============================================================
+        float subW = 1.0 / 3.0;
+        float2 cellUV = frac(ledUV);
+
+        float2 cR = float2(subW * 0.5, 0.5);
+        float2 cG = float2(subW * 1.5, 0.5);
+        float2 cB = float2(subW * 2.5, 0.5);
+
         float hw = dotRadius * subW * 0.35; // 幅: 狭い
         float hh = dotRadius * 0.45;        // 高さ: 縦長
         float cr = min(hw, hh) * 0.3;       // 角丸
@@ -126,7 +171,16 @@ float3 ProceduralSubpixelLED(float2 ledUV, float3 inputColor)
     }
     else
     {
-        // ── Circle (TriDelta=0, HStripe=1) ──
+        // ============================================================
+        // ── Horizontal Stripe (水平ストライプ — 従来互換, pattern 1) ──
+        // ============================================================
+        float subW = 1.0 / 3.0;
+        float2 cellUV = frac(ledUV);
+
+        float2 cR = float2(subW * 0.5, 0.5);
+        float2 cG = float2(subW * 1.5, 0.5);
+        float2 cB = float2(subW * 2.5, 0.5);
+
         float sr = dotRadius * subW * 0.5;
 
         sdf.x = SDFCircle(cellUV, cR, sr);
@@ -139,9 +193,9 @@ float3 ProceduralSubpixelLED(float2 ledUV, float3 inputColor)
 
     // --- AA マスク ---
     float3 mask;
-    mask.x = AntiAliasedSDFMask(sdf.x, ledUV);
-    mask.y = AntiAliasedSDFMask(sdf.y, ledUV);
-    mask.z = AntiAliasedSDFMask(sdf.z, ledUV);
+    mask.x = AntiAliasedSDFMask(sdf.x, sdfUV);
+    mask.y = AntiAliasedSDFMask(sdf.y, sdfUV);
+    mask.z = AntiAliasedSDFMask(sdf.z, sdfUV);
 
     // --- ホットスポット ---
     float3 hot;
