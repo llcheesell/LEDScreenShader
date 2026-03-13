@@ -21,20 +21,6 @@
 // Pipeline abstraction macros
 #define LED_FOV_COT unity_CameraProjection[1][1]
 
-// Motion-vector matrices for MotionVectors pass.
-// URP / HDRP set these globals per-frame.
-// In Built-in, no MotionVectors LightMode exists so the pass never runs.
-//
-// _NonJitteredViewProjMatrix : current-frame VP **without** TAA jitter
-// _PrevViewProjMatrix        : previous-frame VP (also non-jittered)
-//
-// Both must be non-jittered so that the motion-vector delta contains
-// only real camera/object motion, not per-frame TAA sub-pixel offsets.
-float4x4 _NonJitteredViewProjMatrix;
-float4x4 _PrevViewProjMatrix;
-#define LED_NONJITTERED_VP _NonJitteredViewProjMatrix
-#define LED_PREV_VP        _PrevViewProjMatrix
-
 // ============================================================================
 // Texture declarations
 // ============================================================================
@@ -74,12 +60,15 @@ float  _CabinetBrightnessVariance;
 
 // Procedural LED
 float  _ProceduralLEDEnabled;        // トグル: 0=テクスチャ, 1=プロシージャル
+float  _ProceduralLEDPattern;        // 0=TriDelta, 1=HStripe, 2=VRect
 float  _ProceduralDotRadius;         // ドット半径 (0.3..1.0)
 float  _ProceduralHotspotStrength;   // 中心ホットスポット (0..1)
 float  _ProceduralGlowRadius;        // グロー半径 (0..0.5)
 float  _ProceduralGlowIntensity;     // グロー強度 (0..1)
+float  _ProceduralHighlightStrength; // 白色ハイライト強度 (0..2)
 
 // Surface Material
+float  _BaseMaterialEnabled; // toggle: enable PBR base material
 float  _SurfaceUVLinkLED;    // toggle: link surface UV to LED tiling
 float4 _BaseColor;
 float4 _BaseMap_ST;          // auto-generated from texture Tiling/Offset

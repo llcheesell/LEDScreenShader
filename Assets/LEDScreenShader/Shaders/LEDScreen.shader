@@ -28,10 +28,13 @@ Shader "llcheesell/LEDScreen"
         [Space(5)]
         [Toggle]
         _ProceduralLEDEnabled  ("Enable Procedural LED", Float) = 1.0
+        [Enum(Triangle Delta,0,Horizontal Stripe,1,Vertical Rectangle,2)]
+        _ProceduralLEDPattern  ("Pattern", Float) = 0
         _ProceduralDotRadius   ("Dot Radius", Range(0.3, 1.0)) = 0.8
         _ProceduralHotspotStrength ("Hotspot Strength", Range(0, 1)) = 0.3
         _ProceduralGlowRadius  ("Glow Radius", Range(0, 0.5)) = 0.1
         _ProceduralGlowIntensity ("Glow Intensity", Range(0, 1)) = 0.15
+        _ProceduralHighlightStrength ("Highlight Strength", Range(0, 2)) = 0.5
 
         // =====================================================================
         // Emission
@@ -73,6 +76,8 @@ Shader "llcheesell/LEDScreen"
         [Space(10)]
         [Header(Surface Material)]
         [Space(5)]
+        [Toggle]
+        _BaseMaterialEnabled ("Enable Base Material", Float) = 0.0
         [Toggle]
         _SurfaceUVLinkLED ("Link UV to LED Tiling", Float) = 1.0
         _BaseColor      ("Base Color", Color)  = (1, 1, 1, 1)
@@ -163,9 +168,8 @@ Shader "llcheesell/LEDScreen"
         UNITY_SETUP_INSTANCE_ID(IN);
 
         // ---- UV computation ----
-        float2 inputUV   = GetInputUV(IN.uv);     // Input texture (own Tiling/Offset)
-        float2 ledUV     = GetLEDUV(IN.uv);       // LED mask (columns x rows)
-        float2 baseTexUV = GetBaseUV(IN.uv);       // Base/Normal/Mask (shared Tiling/Offset)
+        float2 inputUV = GetInputUV(IN.uv);
+        float2 ledUV   = GetLEDUV(IN.uv);
 
         // ---- LED fade ----
         float distFade = ComputeDistantFade(IN.positionWS);
@@ -176,85 +180,84 @@ Shader "llcheesell/LEDScreen"
         float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
         float3 emission  = ledResult.rgb;
 
-        // ---- Base material sampling (using base UV) ----
-        half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseTexUV) * _BaseColor;
-
-        // Normal map with strength
-        half3 normalTS = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseTexUV));
-        normalTS.xy *= _NormalStrength;
-        normalTS = normalize(normalTS);
-
-        // Mask Map: R=Metallic, G=AO, B=Detail(unused), A=Smoothness
-        half4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, baseTexUV);
-        float metallic   = maskMap.r * _Metallic;
-        float ao         = lerp(1.0, maskMap.g, _OcclusionStrength);
-        float smoothness         = maskMap.a * _Smoothness;
-        float perceptualRoughness = 1.0 - smoothness;
-        float roughness           = max(perceptualRoughness * perceptualRoughness, 6.103515625e-5);
-
-        // ---- Cabinet grid ----
+        // ---- Cabinet grid (emission + normal) ----
+        float3 normalTS = float3(0, 0, 1);
         float emissiveScale = 1.0;
         ApplyCabinetGrid(IN.uv, normalTS, emissiveScale);
         emission *= emissiveScale;
 
-        // ---- TBN: tangent-space normal to world-space ----
+        // ---- Base Material OFF: emission only (PBR スキップ) ----
+        UNITY_BRANCH
+        if (_BaseMaterialEnabled < 0.5)
+        {
+            float3 finalColor = emission;
+            UNITY_APPLY_FOG(IN.fogCoord, finalColor);
+            return half4(finalColor, 1.0);
+        }
+
+        // ================================================================
+        // Base Material ON: フル PBR ライティング
+        // ================================================================
+        float2 baseTexUV = GetBaseUV(IN.uv);
+
+        // ---- Base color ----
+        half4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseTexUV) * _BaseColor;
+
+        // ---- Normal map (cabinet grid ノーマルに加算) ----
+        half3 normalMapVal = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseTexUV));
+        normalTS.xy += normalMapVal.xy * _NormalStrength;
+        normalTS = normalize(normalTS);
+
+        // ---- Mask Map: R=Metallic, G=AO, B=Detail(unused), A=Smoothness ----
+        half4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, baseTexUV);
+        float metallic            = maskMap.r * _Metallic;
+        float ao                  = lerp(1.0, maskMap.g, _OcclusionStrength);
+        float smoothness          = maskMap.a * _Smoothness;
+        float perceptualRoughness = 1.0 - smoothness;
+        float roughness           = max(perceptualRoughness * perceptualRoughness, 6.103515625e-5);
+
+        // ---- TBN ----
         float sgn = IN.tangentWS.w;
         float3 bitangent = sgn * cross(IN.normalWS, IN.tangentWS.xyz);
         half3x3 TBN = half3x3(IN.tangentWS.xyz, bitangent, IN.normalWS);
         half3 normalWS = normalize(mul(normalTS, TBN));
 
-        // ---- Lighting (GGX / Cook-Torrance — matches Unity Standard) ----
-        float3 viewDir = normalize(_WorldSpaceCameraPos - IN.positionWS);
-        float3 lightDir = _WorldSpaceLightPos0.xyz; // directional light
+        // ---- Lighting (GGX / Cook-Torrance) ----
+        float3 viewDir  = normalize(_WorldSpaceCameraPos - IN.positionWS);
+        float3 lightDir = _WorldSpaceLightPos0.xyz;
 
-        // Dot products
         float NdotV = max(saturate(dot(normalWS, viewDir)), 1e-4);
         float NdotL = saturate(dot(normalWS, lightDir));
         float3 halfDir = normalize(lightDir + viewDir);
         float NdotH = saturate(dot(normalWS, halfDir));
         float LdotH = saturate(dot(lightDir, halfDir));
 
-        // Shadow & attenuation
         UNITY_LIGHT_ATTENUATION(atten, IN, IN.positionWS);
-
-        // Ambient (spherical harmonics)
         float3 ambient = ShadeSH9(float4(normalWS, 1.0));
 
-        // F0: dielectric=0.04, metallic=baseColor
-        float3 specColor = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
-
-        // Diffuse albedo (energy conserving: metals have no diffuse)
+        float3 specColor    = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
         float3 diffuseAlbedo = baseColor.rgb * (1.0 - metallic);
 
-        // --- Direct lighting (GGX specular + Lambert diffuse) ---
-        // GGX normal distribution
-        float D = GGXTerm(NdotH, roughness);
-        // Smith-GGX visibility (G / (4 * NdotL * NdotV))
-        float V = SmithJointGGXVisibilityTerm(NdotL, NdotV, roughness);
-        // Fresnel (Schlick)
+        // Direct lighting
+        float  D = GGXTerm(NdotH, roughness);
+        float  V = SmithJointGGXVisibilityTerm(NdotL, NdotV, roughness);
         float3 F = FresnelTerm(specColor, LdotH);
 
-        float3 directSpecular = D * V * F * UNITY_PI; // cook-torrance
-        directSpecular = max(0.0, directSpecular);
-        float3 directDiffuse = diffuseAlbedo;
-
-        float3 directLighting = (directDiffuse + directSpecular)
+        float3 directSpecular = max(0.0, D * V * F * UNITY_PI);
+        float3 directLighting = (diffuseAlbedo + directSpecular)
                               * _LightColor0.rgb * NdotL * atten;
 
-        // --- Indirect lighting ---
+        // Indirect lighting
         float3 ambientDiffuse = diffuseAlbedo * ambient * ao;
 
-        // Fresnel for environment reflection (view-dependent)
         float surfaceReduction = 1.0 / (roughness * roughness + 1.0);
         float grazingTerm = saturate(smoothness + (1.0 - max(max(specColor.r, specColor.g), specColor.b)));
         float3 envFresnel = FresnelLerp(specColor, grazingTerm, NdotV);
 
-        // Environment reflection (reflection probe / fallback)
         float3 reflectDir = reflect(-viewDir, normalWS);
         float mip = perceptualRoughness * UNITY_SPECCUBE_LOD_STEPS;
         float3 envReflection = float3(0, 0, 0);
         #if defined(UNITY_SPECCUBE_BOX_PROJECTION)
-            // Box projection: correct reflection direction for finite-size probes
             float3 projDir = reflectDir;
             UNITY_BRANCH
             if (unity_SpecCube0_ProbePosition.w > 0.0)
@@ -279,9 +282,7 @@ Shader "llcheesell/LEDScreen"
                           + indirectSpecular
                           + emission;
 
-        // Fog
         UNITY_APPLY_FOG(IN.fogCoord, finalColor);
-
         return half4(finalColor, 1.0);
     }
 
@@ -315,8 +316,6 @@ Shader "llcheesell/LEDScreen"
     {
         return 0;
     }
-
-    // MotionVectors: vertMotionVectors / fragMotionVectors defined in LEDScreenCore.hlsl
 
     // ------------------------------------------------------------------
     // ShadowCaster pass (Built-in パイプライン用)
@@ -412,12 +411,51 @@ Shader "llcheesell/LEDScreen"
             ENDCG
         }
 
-        // MotionVectors パスは意図的に省略。
-        // URP は MotionVectors パスが無いオブジェクトに対して
-        // カメラモーションベクターを自動的に適用する。
-        // CGPROGRAM ベースのカスタム実装は、UNITY_UV_STARTS_AT_TOP の
-        // Y フリップ処理がパイプラインの期待と一致せず、
-        // TAA/DLSS ゴーストの原因となるため除去した。
+        // MotionVectors パス: 大きなモーションベクターを出力し、
+        // TAA/DLSS にヒストリーサンプルを棄却させる。
+        // LED パネルは映像コンテンツが毎フレーム変化するため、
+        // テンポラル蓄積がゴースト/残像の原因となる。
+        // HLSLPROGRAM + URP インクルードでパイプラインとの互換性を確保。
+        Pass
+        {
+            Name "MotionVectors"
+            Tags { "LightMode" = "MotionVectors" }
+
+            HLSLPROGRAM
+            #pragma vertex VertMotionVectorsURP
+            #pragma fragment FragMotionVectorsURP
+            #pragma multi_compile_instancing
+
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+
+            struct MVAttributesURP
+            {
+                float4 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct MVVaryingsURP
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            MVVaryingsURP VertMotionVectorsURP(MVAttributesURP input)
+            {
+                MVVaryingsURP output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
+                return output;
+            }
+
+            // 意図的に大きなモーションベクターを出力。
+            // TAA/DLSS はリプロジェクション先が画面外となり、
+            // ヒストリーサンプルを棄却して現在フレームのみを使用する。
+            float4 FragMotionVectorsURP(MVVaryingsURP input) : SV_Target
+            {
+                return float4(2.0, 2.0, 0.0, 0.0);
+            }
+            ENDHLSL
+        }
     }
 
     // ========================================================================
@@ -514,12 +552,48 @@ Shader "llcheesell/LEDScreen"
             ENDHLSL
         }
 
-        // MotionVectors パスは意図的に省略。
-        // HDRP は MotionVectors パスが無いオブジェクトに対して
-        // 深度バッファからカメラモーションベクターを再構築する。
-        // 静的な LED スクリーンにはこれで十分であり、
-        // CGPROGRAM からの _NonJitteredViewProjMatrix 参照や
-        // Y フリップ処理の不整合によるゴーストアーティファクトを回避できる。
+        // MotionVectors パス: TAA/DLSS ゴースト防止。
+        // HLSLPROGRAM + HDRP インクルードでパイプラインとの互換性を確保。
+        Pass
+        {
+            Name "MotionVectors"
+            Tags { "LightMode" = "MotionVectors" }
+
+            HLSLPROGRAM
+            #pragma vertex VertMotionVectorsHDRP
+            #pragma fragment FragMotionVectorsHDRP
+            #pragma multi_compile_instancing
+            #pragma instancing_options renderinglayer
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            struct MVAttributesHDRP
+            {
+                float3 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct MVVaryingsHDRP
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            MVVaryingsHDRP VertMotionVectorsHDRP(MVAttributesHDRP input)
+            {
+                MVVaryingsHDRP output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                float3 posRWS = TransformObjectToWorld(input.positionOS);
+                output.positionCS = TransformWorldToHClip(posRWS);
+                return output;
+            }
+
+            float4 FragMotionVectorsHDRP(MVVaryingsHDRP input) : SV_Target
+            {
+                return float4(2.0, 2.0, 0.0, 0.0);
+            }
+            ENDHLSL
+        }
     }
 
     // ========================================================================

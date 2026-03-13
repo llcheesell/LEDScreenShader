@@ -4,153 +4,179 @@
 // ============================================================================
 // プロシージャル LED サブピクセルレンダリング
 //
-// SDF (Signed Distance Function) ベースで LED ドットを動的に描画する。
-// テクスチャ不要で、TAA/DLSS フレンドリー。
+// SDF ベースで LED ドットを動的に描画。テクスチャ不要。
 //
-// レイアウト: RGB ストライプ（各セルを水平3分割）
-// ドット形状: 円形
+// パターン:
+//   0 = Triangle Delta (三角形配置) — デフォルト
+//   1 = Horizontal Stripe (水平ストライプ — 従来互換)
+//   2 = Vertical Rectangle (縦長矩形)
+//
+// 機能:
+//   - アンチエイリアス (fwidth ベース)
+//   - ホットスポット (中心輝度ピーク)
+//   - グロー (ドット周囲のソフト発光)
+//   - エネルギー補償 (ドット面積に反比例した輝度補正)
+//   - 白色ハイライト (高輝度ピクセルの中心が白く飽和)
 // ============================================================================
 
 // ----------------------------------------------------------------------------
-// SDF: 円の符号付き距離関数
-// p      : 評価点
-// center : 円の中心
-// radius : 円の半径
-// 戻り値 : 負=内部, 0=境界, 正=外部
+// SDF プリミティブ
 // ----------------------------------------------------------------------------
+
 float SDFCircle(float2 p, float2 center, float radius)
 {
     return length(p - center) - radius;
 }
 
+float SDFRoundedRect(float2 p, float2 center, float2 halfSize, float cornerRadius)
+{
+    float2 d = abs(p - center) - halfSize + cornerRadius;
+    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0) - cornerRadius;
+}
+
 // ----------------------------------------------------------------------------
 // アンチエイリアス付き SDF マスク
-// fwidth() でスクリーン空間のピクセル幅を取得し、
-// 解像度に適応したスムーズなエッジを生成する。
-// sdf    : 符号付き距離値
-// ledUV  : LED UV（fwidth 計算の基準）
-// 戻り値 : 0.0=完全に外, 1.0=完全に内
 // ----------------------------------------------------------------------------
 float AntiAliasedSDFMask(float sdf, float2 ledUV)
 {
-    // スクリーン空間での LED UV の変化量からピクセル幅を推定
     float pixelWidth = max(length(ddx(ledUV)), length(ddy(ledUV)));
-    // AA 幅: 最低でも SDF 空間で意味のある幅を確保
     float aaWidth = max(pixelWidth * 0.5, 0.001);
     return 1.0 - smoothstep(-aaWidth, aaWidth, sdf);
 }
 
 // ----------------------------------------------------------------------------
-// ホットスポット: ドット中心が最も明るく、端に向かって減衰
-// normalizedDist : ドット中心からの正規化距離 (0=中心, 1=エッジ)
-// strength       : ホットスポットの強さ (0=均一, 1=強い中心集中)
-// 戻り値         : 輝度倍率 (1.0 ～ 1.0+strength)
+// ホットスポット: ドット中心が最も明るく端に向かって減衰
 // ----------------------------------------------------------------------------
 float ComputeHotspot(float normalizedDist, float strength)
 {
-    // 中心ほど明るいガウシアン風の減衰
     float falloff = 1.0 - normalizedDist * normalizedDist;
     return 1.0 + strength * falloff;
 }
 
 // ----------------------------------------------------------------------------
 // グロー: ドット周囲のソフトな発光ハロー
-// sdf           : 符号付き距離値（正=ドット外部）
-// glowRadius    : グローの到達半径
-// glowIntensity : グローの強度
-// 戻り値        : グロー輝度 (0..glowIntensity)
 // ----------------------------------------------------------------------------
 float ComputeGlow(float sdf, float glowRadius, float glowIntensity)
 {
-    // ドット外部のみグローを適用（内部は SDF マスクでカバー）
     float glowDist = max(sdf, 0.0);
     float glow = 1.0 - smoothstep(0.0, glowRadius, glowDist);
-    return glow * glow * glowIntensity; // 二乗で自然な減衰
+    return glow * glow * glowIntensity;
 }
 
-// ----------------------------------------------------------------------------
-// エネルギー補償: ドット面積の逆数で輝度を補正
-//
-// LED パネルの物理特性:
-//   - 各ドットは非常に小さいが、極めて高輝度
-//   - 遠距離では多数のドットが1ピクセルに混合され、平均色に見える
-//   - エネルギー保存: 近距離の点光源と遠距離の平均色が同じ総エネルギー
-//
-// dotRadius     : ドット半径（セル幅に対する比率）
-// subpixelWidth : サブピクセル幅（= 1/3 セル幅）
-// 戻り値        : 輝度補償係数
-// ----------------------------------------------------------------------------
-float ComputeEnergyCompensation(float dotRadius, float subpixelWidth)
-{
-    // ドット面積 = π * r² （サブピクセル領域内）
-    // サブピクセル面積 = subpixelWidth * 1.0（セル高さ=1）
-    // 補償 = サブピクセル面積 / ドット面積
-    float dotArea = 3.14159265 * dotRadius * dotRadius;
-    float subpixelArea = subpixelWidth * 1.0;
-    // クランプして極端な値を防止（最大20倍）
-    return min(subpixelArea / max(dotArea, 0.001), 20.0);
-}
-
-// ----------------------------------------------------------------------------
+// ============================================================================
 // メイン関数: プロシージャル LED サブピクセルレンダリング
 //
-// ledUV      : LED UV 座標（_LEDTilingX * _LEDTilingY のタイリング済み）
-// inputColor : 入力テクスチャの色（リニア RGB）
-// 戻り値     : LED サブピクセル発光色（エネルギー補償済み）
-// ----------------------------------------------------------------------------
+// ledUV      : LED UV (タイリング済み)
+// inputColor : 入力テクスチャ色 (リニア RGB)
+// 戻り値     : LED サブピクセル発光色 (エネルギー補償済み)
+// ============================================================================
 float3 ProceduralSubpixelLED(float2 ledUV, float3 inputColor)
 {
-    // --- セル内のローカル座標 ---
-    float2 cellUV = frac(ledUV);
-
-    // --- パラメータ取得 ---
+    int pattern         = (int)_ProceduralLEDPattern;
     float dotRadius     = _ProceduralDotRadius;
     float hotspotStr    = _ProceduralHotspotStrength;
     float glowRadius    = _ProceduralGlowRadius;
     float glowIntensity = _ProceduralGlowIntensity;
+    float highlightStr  = _ProceduralHighlightStrength;
 
-    // --- サブピクセル幅（セルを3分割） ---
+    // サブピクセル幅 (セルを RGB 3 分割)
     float subW = 1.0 / 3.0;
 
-    // --- 各サブピクセルの中心座標 ---
-    // R: x = 1/6,  G: x = 3/6,  B: x = 5/6,  Y: 全て 0.5
-    float2 centerR = float2(subW * 0.5,       0.5);
-    float2 centerG = float2(subW * 1.5,       0.5);
-    float2 centerB = float2(subW * 2.5,       0.5);
+    // --- セル座標計算 ---
+    float2 adjUV = ledUV;
 
-    // --- ドット半径（サブピクセル幅に対する比率をセル座標に変換） ---
-    float scaledRadius = dotRadius * subW * 0.5;
+    // Triangle Delta: 奇数行を半セルオフセットして三角形配置
+    UNITY_BRANCH
+    if (pattern == 0)
+    {
+        float row = floor(ledUV.y);
+        float isOddRow = step(0.25, frac(row * 0.5));
+        adjUV.x += isOddRow * 0.5;
+    }
 
-    // --- 各サブピクセルの SDF 計算 ---
-    float sdfR = SDFCircle(cellUV, centerR, scaledRadius);
-    float sdfG = SDFCircle(cellUV, centerG, scaledRadius);
-    float sdfB = SDFCircle(cellUV, centerB, scaledRadius);
+    float2 cellUV = frac(adjUV);
 
-    // --- アンチエイリアス付きマスク ---
-    float maskR = AntiAliasedSDFMask(sdfR, ledUV);
-    float maskG = AntiAliasedSDFMask(sdfG, ledUV);
-    float maskB = AntiAliasedSDFMask(sdfB, ledUV);
+    // --- サブピクセル中心座標 ---
+    // R: x=1/6, G: x=3/6, B: x=5/6, Y: 全て 0.5
+    float2 cR = float2(subW * 0.5, 0.5);
+    float2 cG = float2(subW * 1.5, 0.5);
+    float2 cB = float2(subW * 2.5, 0.5);
 
-    // --- ホットスポット（ドット内部のみ） ---
-    float hotR = ComputeHotspot(saturate(-sdfR / max(scaledRadius, 0.001)), hotspotStr);
-    float hotG = ComputeHotspot(saturate(-sdfG / max(scaledRadius, 0.001)), hotspotStr);
-    float hotB = ComputeHotspot(saturate(-sdfB / max(scaledRadius, 0.001)), hotspotStr);
+    // --- パターン別 SDF + エネルギー補償 ---
+    float3 sdf;
+    float3 centerDist; // 正規化中心距離 (0=エッジ, 1=中心)
+    float energyComp;
 
-    // --- グロー（ドット外部のソフトハロー） ---
-    float glowR = ComputeGlow(sdfR, glowRadius, glowIntensity);
-    float glowG = ComputeGlow(sdfG, glowRadius, glowIntensity);
-    float glowB = ComputeGlow(sdfB, glowRadius, glowIntensity);
+    UNITY_BRANCH
+    if (pattern == 2)
+    {
+        // ── Vertical Rectangle ──
+        float hw = dotRadius * subW * 0.35; // 幅: 狭い
+        float hh = dotRadius * 0.45;        // 高さ: 縦長
+        float cr = min(hw, hh) * 0.3;       // 角丸
+        float2 hs = float2(hw, hh);
 
-    // --- エネルギー補償 ---
-    float energyComp = ComputeEnergyCompensation(scaledRadius, subW);
+        sdf.x = SDFRoundedRect(cellUV, cR, hs, cr);
+        sdf.y = SDFRoundedRect(cellUV, cG, hs, cr);
+        sdf.z = SDFRoundedRect(cellUV, cB, hs, cr);
 
-    // --- 各チャンネルの発光色を合成 ---
+        float diagLen = length(hs);
+        centerDist = saturate(-sdf / max(diagLen, 0.001));
+        energyComp = min((subW * 1.0) / max(4.0 * hw * hh, 0.001), 20.0);
+    }
+    else
+    {
+        // ── Circle (TriDelta=0, HStripe=1) ──
+        float sr = dotRadius * subW * 0.5;
+
+        sdf.x = SDFCircle(cellUV, cR, sr);
+        sdf.y = SDFCircle(cellUV, cG, sr);
+        sdf.z = SDFCircle(cellUV, cB, sr);
+
+        centerDist = saturate(-sdf / max(sr, 0.001));
+        energyComp = min((subW * 1.0) / max(3.14159265 * sr * sr, 0.001), 20.0);
+    }
+
+    // --- AA マスク ---
+    float3 mask;
+    mask.x = AntiAliasedSDFMask(sdf.x, ledUV);
+    mask.y = AntiAliasedSDFMask(sdf.y, ledUV);
+    mask.z = AntiAliasedSDFMask(sdf.z, ledUV);
+
+    // --- ホットスポット ---
+    float3 hot;
+    hot.x = ComputeHotspot(centerDist.x, hotspotStr);
+    hot.y = ComputeHotspot(centerDist.y, hotspotStr);
+    hot.z = ComputeHotspot(centerDist.z, hotspotStr);
+
+    // --- グロー ---
+    float3 glow;
+    glow.x = ComputeGlow(sdf.x, glowRadius, glowIntensity);
+    glow.y = ComputeGlow(sdf.y, glowRadius, glowIntensity);
+    glow.z = ComputeGlow(sdf.z, glowRadius, glowIntensity);
+
+    // --- 基本発光色 ---
     // ドット内部: 入力色 × マスク × ホットスポット × エネルギー補償
     // ドット外部: グローによる微弱な発光
     float3 result;
-    result.r = inputColor.r * (maskR * hotR * energyComp + glowR);
-    result.g = inputColor.g * (maskG * hotG * energyComp + glowG);
-    result.b = inputColor.b * (maskB * hotB * energyComp + glowB);
+    result.r = inputColor.r * (mask.x * hot.x * energyComp + glow.x);
+    result.g = inputColor.g * (mask.y * hot.y * energyComp + glow.y);
+    result.b = inputColor.b * (mask.z * hot.z * energyComp + glow.z);
+
+    // --- 白色ハイライト ---
+    // 高輝度ピクセルの中心が白く飽和する効果。
+    // 実際の LED は高電流時にダイが広帯域発光し、中心が白く見える。
+    // inputColor² で高輝度のみに効果を限定、centerDist² で中心に集中。
+    UNITY_BRANCH
+    if (highlightStr > 0.001)
+    {
+        float3 hl = inputColor * inputColor
+                   * centerDist * centerDist
+                   * mask
+                   * (highlightStr * energyComp);
+        float totalWhite = hl.x + hl.y + hl.z;
+        result += totalWhite;
+    }
 
     return result;
 }

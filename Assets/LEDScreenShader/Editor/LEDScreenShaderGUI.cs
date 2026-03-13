@@ -17,7 +17,7 @@ public class LEDScreenShaderGUI : ShaderGUI
     static bool _foldEmission        = true;
     static bool _foldDistantFade     = true;
     static bool _foldCabinetGrid     = false;
-    static bool _foldSurfaceMaterial = true;
+    static bool _foldSurfaceMaterial = false;
     static bool _foldRendering       = true;
 
     // ========================================================================
@@ -93,51 +93,7 @@ public class LEDScreenShaderGUI : ShaderGUI
         // ----------------------------------------------------------------
         // Surface Material
         // ----------------------------------------------------------------
-        _foldSurfaceMaterial = Section("Surface Material", _foldSurfaceMaterial, () =>
-        {
-            MaterialProperty uvLink = FindProp("_SurfaceUVLinkLED", properties);
-            materialEditor.ShaderProperty(uvLink, "Link UV to LED Tiling");
-
-            EditorGUILayout.Space(2);
-            materialEditor.ShaderProperty(FindProp("_BaseColor", properties), "Base Color");
-
-            MaterialProperty baseMap = FindProp("_BaseMap", properties);
-            materialEditor.TexturePropertySingleLine(
-                new GUIContent("Base Map"), baseMap);
-
-            // Only show Tiling/Offset when UV is NOT linked to LED
-            if (uvLink.floatValue < 0.5f)
-            {
-                EditorGUI.indentLevel += 2;
-                materialEditor.TextureScaleOffsetProperty(baseMap);
-                EditorGUI.indentLevel -= 2;
-            }
-            else
-            {
-                EditorGUI.indentLevel += 2;
-                EditorGUILayout.HelpBox(
-                    "UV linked to LED Tiling. Disable to set custom Tiling/Offset.",
-                    MessageType.Info);
-                EditorGUI.indentLevel -= 2;
-            }
-
-            EditorGUILayout.Space(5);
-            materialEditor.TexturePropertySingleLine(
-                new GUIContent("Normal Map"),
-                FindProp("_NormalMap", properties),
-                FindProp("_NormalStrength", properties));
-
-            EditorGUILayout.Space(5);
-            materialEditor.TexturePropertySingleLine(
-                new GUIContent("Mask Map (R=Metal G=AO A=Smooth)"),
-                FindProp("_MaskMap", properties));
-
-            EditorGUI.indentLevel += 2;
-            materialEditor.ShaderProperty(FindProp("_Metallic", properties), "Metallic");
-            materialEditor.ShaderProperty(FindProp("_Smoothness", properties), "Smoothness");
-            materialEditor.ShaderProperty(FindProp("_OcclusionStrength", properties), "Occlusion Strength");
-            EditorGUI.indentLevel -= 2;
-        });
+        DrawSurfaceMaterialSection(materialEditor, properties);
 
         // ----------------------------------------------------------------
         // Rendering
@@ -200,10 +156,12 @@ public class LEDScreenShaderGUI : ShaderGUI
             // プロシージャル LED パラメータ — 無効時はグレーアウト
             using (new EditorGUI.DisabledScope(!enabled))
             {
+                materialEditor.ShaderProperty(FindProp("_ProceduralLEDPattern", properties), "Pattern");
                 materialEditor.ShaderProperty(FindProp("_ProceduralDotRadius", properties), "Dot Radius");
                 materialEditor.ShaderProperty(FindProp("_ProceduralHotspotStrength", properties), "Hotspot Strength");
                 materialEditor.ShaderProperty(FindProp("_ProceduralGlowRadius", properties), "Glow Radius");
                 materialEditor.ShaderProperty(FindProp("_ProceduralGlowIntensity", properties), "Glow Intensity");
+                materialEditor.ShaderProperty(FindProp("_ProceduralHighlightStrength", properties), "Highlight Strength");
             }
 
             EditorGUI.indentLevel--;
@@ -248,6 +206,95 @@ public class LEDScreenShaderGUI : ShaderGUI
                 materialEditor.ShaderProperty(FindProp("_CabinetSeamWidth", properties), "Seam Width");
                 materialEditor.ShaderProperty(FindProp("_CabinetSeamDepth", properties), "Seam Depth");
                 materialEditor.ShaderProperty(FindProp("_CabinetBrightnessVariance", properties), "Brightness Variance");
+            }
+
+            EditorGUI.indentLevel--;
+        }
+        EditorGUILayout.EndFoldoutHeaderGroup();
+    }
+
+    // ========================================================================
+    // Surface Material: foldout header with enable checkbox inside
+    // ========================================================================
+    void DrawSurfaceMaterialSection(MaterialEditor materialEditor, MaterialProperty[] properties)
+    {
+        EditorGUILayout.Space(4);
+
+        MaterialProperty enableProp = FindProp("_BaseMaterialEnabled", properties);
+        bool enabled = enableProp.floatValue > 0.5f;
+
+        _foldSurfaceMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(
+            _foldSurfaceMaterial, "Surface Material");
+
+        if (_foldSurfaceMaterial)
+        {
+            EditorGUI.indentLevel++;
+
+            // 有効/無効チェックボックス
+            EditorGUI.BeginChangeCheck();
+            EditorGUI.showMixedValue = enableProp.hasMixedValue;
+            bool newEnabled = EditorGUILayout.Toggle("Enable", enabled);
+            EditorGUI.showMixedValue = false;
+            if (EditorGUI.EndChangeCheck())
+            {
+                enableProp.floatValue = newEnabled ? 1.0f : 0.0f;
+                enabled = newEnabled;
+            }
+
+            if (!enabled)
+            {
+                EditorGUILayout.HelpBox(
+                    "無効時は LED エミッションのみ。PBR ライティングはスキップされます。",
+                    MessageType.Info);
+            }
+
+            // PBR パラメータ — 無効時はグレーアウト
+            using (new EditorGUI.DisabledScope(!enabled))
+            {
+                MaterialProperty uvLink = FindProp("_SurfaceUVLinkLED", properties);
+                materialEditor.ShaderProperty(uvLink, "Link UV to LED Tiling");
+
+                EditorGUILayout.Space(2);
+                materialEditor.ShaderProperty(FindProp("_BaseColor", properties), "Base Color");
+
+                MaterialProperty baseMap = FindProp("_BaseMap", properties);
+                materialEditor.TexturePropertySingleLine(
+                    new GUIContent("Base Map"), baseMap);
+
+                if (uvLink.floatValue < 0.5f)
+                {
+                    EditorGUI.indentLevel += 2;
+                    materialEditor.TextureScaleOffsetProperty(baseMap);
+                    EditorGUI.indentLevel -= 2;
+                }
+                else
+                {
+                    EditorGUI.indentLevel += 2;
+                    EditorGUILayout.HelpBox(
+                        "UV linked to LED Tiling. Disable to set custom Tiling/Offset.",
+                        MessageType.Info);
+                    EditorGUI.indentLevel -= 2;
+                }
+
+                EditorGUILayout.Space(5);
+                materialEditor.TexturePropertySingleLine(
+                    new GUIContent("Normal Map"),
+                    FindProp("_NormalMap", properties),
+                    FindProp("_NormalStrength", properties));
+
+                EditorGUILayout.Space(5);
+                materialEditor.TexturePropertySingleLine(
+                    new GUIContent("Mask Map (R=Metal G=AO A=Smooth)"),
+                    FindProp("_MaskMap", properties));
+
+                EditorGUI.indentLevel += 2;
+                EditorGUILayout.HelpBox(
+                    "Mask Map 使用時は Metallic/Smoothness を 1.0 に設定してテクスチャ値を使用。",
+                    MessageType.None);
+                materialEditor.ShaderProperty(FindProp("_Metallic", properties), "Metallic");
+                materialEditor.ShaderProperty(FindProp("_Smoothness", properties), "Smoothness");
+                materialEditor.ShaderProperty(FindProp("_OcclusionStrength", properties), "Occlusion Strength");
+                EditorGUI.indentLevel -= 2;
             }
 
             EditorGUI.indentLevel--;

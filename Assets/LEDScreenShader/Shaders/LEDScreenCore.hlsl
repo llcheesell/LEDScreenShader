@@ -186,68 +186,19 @@ void ApplyCabinetGrid(
 }
 
 // ============================================================================
-// Motion Vectors (camera-only) — 現在未使用
+// Motion Vectors
 // ============================================================================
 //
-// 注意: URP/HDRP SubShader では MotionVectors パスを除去済み。
-// 各パイプラインは MotionVectors パスが無いオブジェクトに対して、
-// 深度バッファからカメラモーションベクターを自動再構築する。
-// 静的な LED スクリーンにはこれで十分。
+// LED パネルは映像コンテンツが毎フレーム変化するため、
+// TAA/DLSS のテンポラル蓄積がゴースト/残像を引き起こす。
 //
-// CGPROGRAM ベースの実装には以下の問題があった:
-// - UNITY_UV_STARTS_AT_TOP による Y フリップがパイプライン内部の処理と競合
-// - _NonJitteredViewProjMatrix の値がパイプラインによって異なる設定タイミング
-// - 高コントラスト発光面で TAA/DLSS ゴーストの原因となっていた
+// 対策: URP/HDRP の MotionVectors パスで意図的に大きなモーションベクターを
+// 出力し、TAA/DLSS にヒストリーサンプルを棄却させる。
+// これにより各フレームの現在値のみが使用され、ゴーストが防止される。
 //
-// 将来、オブジェクトモーション対応が必要になった場合は、
-// HLSLPROGRAM + パイプライン固有のインクルードで再実装すること。
-
-struct MVAttributes
-{
-    float4 positionOS : POSITION;
-    UNITY_VERTEX_INPUT_INSTANCE_ID
-};
-
-struct MVVaryings
-{
-    float4 positionCS  : SV_POSITION;
-    float4 currentCS   : TEXCOORD0;
-    float4 previousCS  : TEXCOORD1;
-};
-
-MVVaryings vertMotionVectors(MVAttributes input)
-{
-    MVVaryings output;
-    UNITY_SETUP_INSTANCE_ID(input);
-
-    float3 posWS = TransformObjectToWorld(input.positionOS.xyz);
-
-    // SV_POSITION must use the (possibly jittered) VP so the pixel
-    // lands at the correct rasterisation position.
-    output.positionCS = TransformWorldToHClip(posWS);
-
-    // Motion-vector calculation: both frames use NON-JITTERED VP
-    // so the delta represents only real camera motion.
-    output.currentCS  = mul(LED_NONJITTERED_VP, float4(posWS, 1.0));
-
-    // Previous frame — same world position (static surface),
-    // different camera VP.
-    output.previousCS = mul(LED_PREV_VP, float4(posWS, 1.0));
-
-    return output;
-}
-
-float2 fragMotionVectors(MVVaryings input) : SV_Target
-{
-    float2 currentNDC  = input.currentCS.xy  / input.currentCS.w;
-    float2 previousNDC = input.previousCS.xy / input.previousCS.w;
-
-    #if UNITY_UV_STARTS_AT_TOP
-    currentNDC.y  = -currentNDC.y;
-    previousNDC.y = -previousNDC.y;
-    #endif
-
-    return (currentNDC - previousNDC) * 0.5;
-}
+// 実装は LEDScreen.shader 内の各パイプライン SubShader に
+// HLSLPROGRAM ベースの専用パスとして配置。
+// CGPROGRAM は UnityCG.cginc の定数バッファレイアウトが
+// パイプラインの期待と競合するため使用しない。
 
 #endif // LEDSCREEN_CORE_INCLUDED
