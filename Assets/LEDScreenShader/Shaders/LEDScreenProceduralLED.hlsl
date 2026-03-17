@@ -82,9 +82,9 @@ float3 ProceduralSubpixelLED(float2 ledUV, float3 inputColor)
     float highlightStr  = _ProceduralHighlightStrength;
 
     // --- パターン別: セル UV、ドット中心、SDF、エネルギー補償 ---
-    float3 sdf;
-    float3 centerDist; // 正規化中心距離 (0=エッジ, 1=中心)
-    float energyComp;
+    float3 sdf = float3(0, 0, 0);
+    float3 centerDist = float3(0, 0, 0); // 正規化中心距離 (0=エッジ, 1=中心)
+    float energyComp = 1.0;
     float2 sdfUV = ledUV; // AA 計算用 UV (パターンにより上書き)
 
     UNITY_BRANCH

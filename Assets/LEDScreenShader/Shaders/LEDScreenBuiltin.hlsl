@@ -21,6 +21,9 @@
 // Pipeline abstraction macros
 #define LED_FOV_COT unity_CameraProjection[1][1]
 
+// Built-in: absolute world space — distance from camera position
+#define LED_CAMERA_DISTANCE(worldPos) distance(worldPos, _WorldSpaceCameraPos)
+
 // ============================================================================
 // Texture declarations
 // ============================================================================
@@ -76,5 +79,8 @@ float  _NormalStrength;
 float  _Metallic;
 float  _Smoothness;
 float  _OcclusionStrength;
+
+// TAA Ghost Prevention
+float  _InvalidateMotionVectors;
 
 #endif // LEDSCREEN_BUILTIN_INCLUDED

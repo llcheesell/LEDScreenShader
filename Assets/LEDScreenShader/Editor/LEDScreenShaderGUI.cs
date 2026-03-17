@@ -101,6 +101,11 @@ public class LEDScreenShaderGUI : ShaderGUI
         _foldRendering = Section("Rendering", _foldRendering, () =>
         {
             materialEditor.ShaderProperty(FindProp("_CullMode", properties), "Cull Mode");
+            EditorGUILayout.Space(5);
+            materialEditor.ShaderProperty(
+                FindProp("_InvalidateMotionVectors", properties),
+                new GUIContent("Force Large Motion Vectors",
+                    "TAA/DLSS ゴースト防止。大きなモーションベクターを出力し、テンポラル蓄積を棄却させます。"));
             materialEditor.RenderQueueField();
             materialEditor.EnableInstancingField();
             materialEditor.DoubleSidedGIField();

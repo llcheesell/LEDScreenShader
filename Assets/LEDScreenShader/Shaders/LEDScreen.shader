@@ -103,6 +103,12 @@ Shader "llcheesell/LEDScreen"
         [Space(5)]
         [Enum(UnityEngine.Rendering.CullMode)]
         _CullMode ("Cull Mode", Float) = 2
+
+        [Space(10)]
+        [Header(TAA Ghost Prevention)]
+        [Space(5)]
+        [Toggle]
+        _InvalidateMotionVectors ("Force Large Motion Vectors", Float) = 1.0
     }
 
     // ========================================================================
@@ -327,7 +333,9 @@ Shader "llcheesell/LEDScreen"
     // ------------------------------------------------------------------
     half4 fragMotionVectors(DepthVaryings IN) : SV_Target
     {
-        return half4(2.0, 2.0, 0.0, 0.0);
+        return (_InvalidateMotionVectors > 0.5)
+            ? half4(2.0, 2.0, 0.0, 0.0)
+            : half4(0.0, 0.0, 0.0, 0.0);
     }
 
     // ------------------------------------------------------------------
@@ -460,12 +468,78 @@ Shader "llcheesell/LEDScreen"
             Name "ForwardOnly"
             Tags { "LightMode" = "ForwardOnly" }
 
-            CGPROGRAM
-            #pragma vertex vert
-            #pragma fragment frag
-            #pragma multi_compile_fog
+            // HDRP: DepthForwardOnly が先に深度を書き込み、
+            // ForwardOnly は ZTest Equal で一致ピクセルのみ描画。
+            // HLSLPROGRAM + HDRP インクルードにより、両パスで同一の
+            // 行列変換パスを使用し、深度値の一致を保証する。
+            ZTest Equal
+            ZWrite Off
+
+            HLSLPROGRAM
+            #pragma vertex VertForwardHDRP
+            #pragma fragment FragForwardHDRP
             #pragma multi_compile_instancing
-            ENDCG
+            #pragma instancing_options renderinglayer
+
+            #include "LEDScreenHDRP.hlsl"
+            #include "LEDScreenCore.hlsl"
+
+            struct ForwardAttributesHDRP
+            {
+                float4 positionOS : POSITION;
+                float3 normalOS   : NORMAL;
+                float4 tangentOS  : TANGENT;
+                float2 texcoord   : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct ForwardVaryingsHDRP
+            {
+                float4 positionCS   : SV_POSITION;
+                float2 uv           : TEXCOORD0;
+                float3 positionRWS  : TEXCOORD1;
+                float3 normalWS     : TEXCOORD2;
+                float4 tangentWS    : TEXCOORD3;
+            };
+
+            ForwardVaryingsHDRP VertForwardHDRP(ForwardAttributesHDRP input)
+            {
+                ForwardVaryingsHDRP output = (ForwardVaryingsHDRP)0;
+                UNITY_SETUP_INSTANCE_ID(input);
+
+                float3 posRWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.positionCS  = TransformWorldToHClip(posRWS);
+                output.positionRWS = posRWS;
+                output.normalWS    = TransformObjectToWorldNormal(input.normalOS);
+                output.tangentWS   = float4(TransformObjectToWorldDir(input.tangentOS.xyz), input.tangentOS.w);
+                output.uv          = input.texcoord;
+                return output;
+            }
+
+            float4 FragForwardHDRP(ForwardVaryingsHDRP input) : SV_Target
+            {
+                // ---- UV ----
+                float2 inputUV = GetInputUV(input.uv);
+                float2 ledUV   = GetLEDUV(input.uv);
+
+                // ---- Fade ----
+                float distFade = ComputeDistantFade(input.positionRWS);
+                float autoFade = ComputeAutoFade(ledUV);
+                float fade     = max(distFade, autoFade);
+
+                // ---- LED emission ----
+                float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
+                float3 emission  = ledResult.rgb;
+
+                // ---- Cabinet grid ----
+                float3 normalTS = float3(0, 0, 1);
+                float emissiveScale = 1.0;
+                ApplyCabinetGrid(input.uv, normalTS, emissiveScale);
+                emission *= emissiveScale;
+
+                return float4(emission, 1.0);
+            }
+            ENDHLSL
         }
 
         Pass
@@ -475,11 +549,40 @@ Shader "llcheesell/LEDScreen"
             ZWrite On
             ColorMask 0
 
-            CGPROGRAM
-            #pragma vertex vertDepth
-            #pragma fragment fragDepth
+            HLSLPROGRAM
+            #pragma vertex VertDepthHDRP
+            #pragma fragment FragDepthHDRP
             #pragma multi_compile_instancing
-            ENDCG
+            #pragma instancing_options renderinglayer
+
+            #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
+            #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            struct DepthAttributesHDRP
+            {
+                float4 positionOS : POSITION;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct DepthVaryingsHDRP
+            {
+                float4 positionCS : SV_POSITION;
+            };
+
+            DepthVaryingsHDRP VertDepthHDRP(DepthAttributesHDRP input)
+            {
+                DepthVaryingsHDRP output;
+                UNITY_SETUP_INSTANCE_ID(input);
+                float3 posRWS = TransformObjectToWorld(input.positionOS.xyz);
+                output.positionCS = TransformWorldToHClip(posRWS);
+                return output;
+            }
+
+            float4 FragDepthHDRP(DepthVaryingsHDRP input) : SV_Target
+            {
+                return 0;
+            }
+            ENDHLSL
         }
 
         Pass
@@ -536,11 +639,32 @@ Shader "llcheesell/LEDScreen"
         }
 
         // MotionVectors パス: TAA/DLSS ゴースト防止。
-        // HLSLPROGRAM + HDRP インクルードでパイプラインとの互換性を確保。
+        //
+        // LED パネルは映像コンテンツが毎フレーム変化するため、
+        // TAA のテンポラル蓄積がゴースト/残像を引き起こす。
+        // 意図的に大きなモーションベクターを出力し、
+        // TAA にヒストリーサンプルを棄却させる。
+        //
+        // ステンシルビット 5 (ObjectMotionVector = 32) を書き込み、
+        // HDRP の CameraMotionVectors パスが本パスの出力を
+        // カメラベースのモーションベクターで上書きしないようにする。
         Pass
         {
             Name "MotionVectors"
             Tags { "LightMode" = "MotionVectors" }
+
+            // HDRP ObjectMotionVector ステンシル:
+            // ビット 5 (値 32) をセットし、CameraMotionVectors パスの
+            // Comp NotEqual テストでスキップさせる。
+            Stencil
+            {
+                WriteMask 32
+                Ref 32
+                Comp Always
+                Pass Replace
+            }
+
+            ZWrite On
 
             HLSLPROGRAM
             #pragma vertex VertMotionVectorsHDRP
@@ -550,6 +674,8 @@ Shader "llcheesell/LEDScreen"
 
             #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
             #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariables.hlsl"
+
+            float _InvalidateMotionVectors;
 
             struct MVAttributesHDRP
             {
@@ -573,7 +699,9 @@ Shader "llcheesell/LEDScreen"
 
             float4 FragMotionVectorsHDRP(MVVaryingsHDRP input) : SV_Target
             {
-                return float4(2.0, 2.0, 0.0, 0.0);
+                return (_InvalidateMotionVectors > 0.5)
+                    ? float4(2.0, 2.0, 0.0, 0.0)
+                    : float4(0.0, 0.0, 0.0, 0.0);
             }
             ENDHLSL
         }

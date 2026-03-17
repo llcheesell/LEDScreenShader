@@ -35,7 +35,7 @@ float2 GetBaseUV(float2 baseUV)
 
 float GetFOVAdjustedDistance(float3 worldPos)
 {
-    float dist = distance(worldPos, _WorldSpaceCameraPos);
+    float dist = LED_CAMERA_DISTANCE(worldPos);
 
     // unity_CameraProjection[1][1] = cot(verticalFOV / 2)
     // Normalize against FOV 60deg baseline: cot(30deg) = sqrt(3) ~ 1.732
@@ -99,47 +99,49 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
     // HDR 強度（二乗で高輝度互換性を維持、レガシー互換）
     float intensity = _IntensityMultiplier * _IntensityMultiplier;
 
-    // 完全フェード時は LED 処理をスキップ
+    float3 ledColor = float3(0, 0, 0);
+
     UNITY_BRANCH
     if (fade >= 0.999)
     {
-        float3 result = inputColor.rgb * intensity;
-        result *= _DistantFadeBrightness.rgb;
-        result *= _EmissionColor.rgb;
-        return float4(result, 1.0);
-    }
-
-    // --- サブピクセルカラー計算（モード分岐） ---
-    float3 subpixelColor = float3(0, 0, 0);
-
-    UNITY_BRANCH
-    if (_ProceduralLEDEnabled > 0.5)
-    {
-        // プロシージャルモード: SDF ベースの LED ドット描画
-        // エネルギー補償付きで、ドット面積に反比例した高輝度を実現
-        subpixelColor = ProceduralSubpixelLED(ledUV, inputColor.rgb);
+        // 完全フェード時は LED 処理をスキップ
+        ledColor = inputColor.rgb * intensity;
+        ledColor *= _DistantFadeBrightness.rgb;
     }
     else
     {
-        // テクスチャモード: 従来の LED マスクテクスチャによる描画
-        float4 ledMask = SAMPLE_TEXTURE2D(_LEDTex, sampler_LEDTex, ledUV);
-        subpixelColor = float3(
-            inputColor.r * ledMask.r,
-            inputColor.g * ledMask.g,
-            inputColor.b * ledMask.b
-        );
+        // --- サブピクセルカラー計算（モード分岐） ---
+        float3 subpixelColor = float3(0, 0, 0);
+
+        UNITY_BRANCH
+        if (_ProceduralLEDEnabled > 0.5)
+        {
+            // プロシージャルモード: SDF ベースの LED ドット描画
+            // エネルギー補償付きで、ドット面積に反比例した高輝度を実現
+            subpixelColor = ProceduralSubpixelLED(ledUV, inputColor.rgb);
+        }
+        else
+        {
+            // テクスチャモード: 従来の LED マスクテクスチャによる描画
+            float4 ledMask = SAMPLE_TEXTURE2D(_LEDTex, sampler_LEDTex, ledUV);
+            subpixelColor = float3(
+                inputColor.r * ledMask.r,
+                inputColor.g * ledMask.g,
+                inputColor.b * ledMask.b
+            );
+        }
+
+        // --- 共通フェード処理 ---
+        // 近距離: サブピクセル LED（高コントラスト）
+        // 遠距離: フラットエミッション（入力色そのまま）
+        float3 flatColor = inputColor.rgb;
+        ledColor = lerp(subpixelColor, flatColor, fade);
+
+        ledColor *= intensity;
+
+        // 遠距離輝度補正
+        ledColor = lerp(ledColor, ledColor * _DistantFadeBrightness.rgb, fade);
     }
-
-    // --- 共通フェード処理 ---
-    // 近距離: サブピクセル LED（高コントラスト）
-    // 遠距離: フラットエミッション（入力色そのまま）
-    float3 flatColor = inputColor.rgb;
-    float3 ledColor  = lerp(subpixelColor, flatColor, fade);
-
-    ledColor *= intensity;
-
-    // 遠距離輝度補正
-    ledColor = lerp(ledColor, ledColor * _DistantFadeBrightness.rgb, fade);
 
     // エミッションカラーティント
     ledColor *= _EmissionColor.rgb;
