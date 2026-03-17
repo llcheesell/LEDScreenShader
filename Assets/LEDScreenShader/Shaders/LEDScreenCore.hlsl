@@ -110,7 +110,7 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
     }
 
     // --- サブピクセルカラー計算（モード分岐） ---
-    float3 subpixelColor;
+    float3 subpixelColor = float3(0, 0, 0);
 
     UNITY_BRANCH
     if (_ProceduralLEDEnabled > 0.5)

@@ -145,6 +145,7 @@ Shader "llcheesell/LEDScreen"
     Varyings vert(Attributes IN)
     {
         Varyings OUT;
+        UNITY_INITIALIZE_OUTPUT(Varyings, OUT);
         UNITY_SETUP_INSTANCE_ID(IN);
         UNITY_TRANSFER_INSTANCE_ID(IN, OUT);
         UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
@@ -318,6 +319,18 @@ Shader "llcheesell/LEDScreen"
     }
 
     // ------------------------------------------------------------------
+    // MotionVectors pass fragment (CG — SRP include 不要)
+    //
+    // 意図的に大きなモーションベクターを出力。
+    // TAA/DLSS はリプロジェクション先が画面外となり、
+    // ヒストリーサンプルを棄却して現在フレームのみを使用する。
+    // ------------------------------------------------------------------
+    half4 fragMotionVectors(DepthVaryings IN) : SV_Target
+    {
+        return half4(2.0, 2.0, 0.0, 0.0);
+    }
+
+    // ------------------------------------------------------------------
     // ShadowCaster pass (Built-in パイプライン用)
     //
     // V2F_SHADOW_CASTER / TRANSFER_SHADOW_CASTER_NORMALOFFSET /
@@ -415,46 +428,16 @@ Shader "llcheesell/LEDScreen"
         // TAA/DLSS にヒストリーサンプルを棄却させる。
         // LED パネルは映像コンテンツが毎フレーム変化するため、
         // テンポラル蓄積がゴースト/残像の原因となる。
-        // HLSLPROGRAM + URP インクルードでパイプラインとの互換性を確保。
         Pass
         {
             Name "MotionVectors"
             Tags { "LightMode" = "MotionVectors" }
 
-            HLSLPROGRAM
-            #pragma vertex VertMotionVectorsURP
-            #pragma fragment FragMotionVectorsURP
+            CGPROGRAM
+            #pragma vertex vertDepth
+            #pragma fragment fragMotionVectors
             #pragma multi_compile_instancing
-
-            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
-
-            struct MVAttributesURP
-            {
-                float4 positionOS : POSITION;
-                UNITY_VERTEX_INPUT_INSTANCE_ID
-            };
-
-            struct MVVaryingsURP
-            {
-                float4 positionCS : SV_POSITION;
-            };
-
-            MVVaryingsURP VertMotionVectorsURP(MVAttributesURP input)
-            {
-                MVVaryingsURP output;
-                UNITY_SETUP_INSTANCE_ID(input);
-                output.positionCS = TransformObjectToHClip(input.positionOS.xyz);
-                return output;
-            }
-
-            // 意図的に大きなモーションベクターを出力。
-            // TAA/DLSS はリプロジェクション先が画面外となり、
-            // ヒストリーサンプルを棄却して現在フレームのみを使用する。
-            float4 FragMotionVectorsURP(MVVaryingsURP input) : SV_Target
-            {
-                return float4(2.0, 2.0, 0.0, 0.0);
-            }
-            ENDHLSL
+            ENDCG
         }
     }
 
