@@ -15,10 +15,11 @@ public class LEDScreenShaderGUI : ShaderGUI
     static bool _foldLEDSubpixel     = true;
     static bool _foldProceduralLED   = true;
     static bool _foldEmission        = true;
-    static bool _foldDistantFade     = true;
+    static bool _foldLEDFade         = true;
     static bool _foldCabinetGrid     = false;
     static bool _foldSurfaceMaterial = false;
     static bool _foldRendering       = true;
+    static bool _foldDebug           = false;
 
     // ========================================================================
     // OnGUI
@@ -76,13 +77,23 @@ public class LEDScreenShaderGUI : ShaderGUI
         });
 
         // ----------------------------------------------------------------
-        // Distant Fade
+        // LED Fade
         // ----------------------------------------------------------------
-        _foldDistantFade = Section("Distant Fade", _foldDistantFade, () =>
+        _foldLEDFade = Section("LED Fade", _foldLEDFade, () =>
         {
-            materialEditor.ShaderProperty(FindProp("_DistantFadeStart", properties), "Start Distance");
-            materialEditor.ShaderProperty(FindProp("_DistantFadeEnd", properties), "End Distance");
-            materialEditor.ShaderProperty(FindProp("_DistantFadeBrightness", properties), "Fade Brightness");
+            materialEditor.ShaderProperty(FindProp("_FadeStart", properties),
+                new GUIContent("Fade Start",
+                    "これ以下の密度ではフェードなし（サブピクセル LED 表示）。\n" +
+                    "値が小さいほど、より粗い（近い）状態でもフェードを開始。"));
+            materialEditor.ShaderProperty(FindProp("_FadeEnd", properties),
+                new GUIContent("Fade End",
+                    "これ以上の密度では完全フェード（フラットエミッション）。\n" +
+                    "値が大きいほど、より細かい（遠い）状態まで LED が残る。"));
+            materialEditor.ShaderProperty(FindProp("_FadeBias", properties),
+                new GUIContent("Fade Bias",
+                    "< 1.0: フェードが早く始まる（残像軽減に有効）\n" +
+                    "= 1.0: デフォルト\n" +
+                    "> 1.0: フェードが遅い（LED ドットが鮮明）"));
         });
 
         // ----------------------------------------------------------------
@@ -109,6 +120,16 @@ public class LEDScreenShaderGUI : ShaderGUI
             materialEditor.RenderQueueField();
             materialEditor.EnableInstancingField();
             materialEditor.DoubleSidedGIField();
+        });
+
+        // ----------------------------------------------------------------
+        // Debug
+        // ----------------------------------------------------------------
+        _foldDebug = Section("Debug", _foldDebug, () =>
+        {
+            materialEditor.ShaderProperty(FindProp("_DebugFadeVis", properties),
+                new GUIContent("Fade Visualization",
+                    "青=フェードなし  緑=遷移中  赤=完全フェード"));
         });
     }
 

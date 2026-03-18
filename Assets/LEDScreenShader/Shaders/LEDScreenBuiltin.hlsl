@@ -18,11 +18,7 @@
 #define TransformObjectToWorld(pos) mul(unity_ObjectToWorld, float4(pos, 1.0)).xyz
 #define TransformWorldToHClip(pos)  mul(UNITY_MATRIX_VP, float4(pos, 1.0))
 
-// Pipeline abstraction macros
-#define LED_FOV_COT unity_CameraProjection[1][1]
-
-// Built-in: absolute world space — distance from camera position
-#define LED_CAMERA_DISTANCE(worldPos) distance(worldPos, _WorldSpaceCameraPos)
+// (LED_CAMERA_DISTANCE / LED_FOV_COT は AutoFade 移行により不要)
 
 // ============================================================================
 // Texture declarations
@@ -48,10 +44,10 @@ float  _LEDTilingY;
 float4 _EmissionColor;
 float  _IntensityMultiplier;
 
-// Distant Fade
-float  _DistantFadeStart;
-float  _DistantFadeEnd;
-float4 _DistantFadeBrightness;
+// LED Fade
+float  _FadeStart;
+float  _FadeEnd;
+float  _FadeBias;
 
 // Cabinet Grid
 float  _CabinetGridEnabled;
@@ -82,5 +78,8 @@ float  _OcclusionStrength;
 
 // TAA Ghost Prevention
 float  _InvalidateMotionVectors;
+
+// Debug
+float  _DebugFadeVis;
 
 #endif // LEDSCREEN_BUILTIN_INCLUDED

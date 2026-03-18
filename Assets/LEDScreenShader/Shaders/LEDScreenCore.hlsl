@@ -30,58 +30,57 @@ float2 GetBaseUV(float2 baseUV)
 }
 
 // ============================================================================
-// Distant Fader (FOV-corrected)
+// Screen-Space Density Fade
 // ============================================================================
-
-float GetFOVAdjustedDistance(float3 worldPos)
-{
-    float dist = LED_CAMERA_DISTANCE(worldPos);
-
-    // unity_CameraProjection[1][1] = cot(verticalFOV / 2)
-    // Normalize against FOV 60deg baseline: cot(30deg) = sqrt(3) ~ 1.732
-    // Telephoto (small FOV) => larger value => fades in sooner
-    float fovCot = LED_FOV_COT;
-    float normalizedFov = fovCot / 1.7320508; // sqrt(3)
-
-    return dist * normalizedFov;
-}
-
-float ComputeDistantFade(float3 worldPos)
-{
-    float adjDist = GetFOVAdjustedDistance(worldPos);
-    float t = saturate((adjDist - _DistantFadeStart) /
-                       max(_DistantFadeEnd - _DistantFadeStart, 0.001));
-    // smoothstep カーブで自然な遷移（線形より滑らかなフェード）
-    return t * t * (3.0 - 2.0 * t);
-}
-
-// ============================================================================
-// DDX/DDY Auto-Fade
-// ============================================================================
-
-// LED ドットがスクリーン上でサブピクセル化した際、フラットエミッションにフェード。
-// DistantFader より精密: 解像度、FOV、斜め視線角を考慮。
 //
-// TAA/DLSS 対策: ドットが完全にサブピクセル化する前にフェードを開始し、
-// テンポラルフリッカーを防止する。smoothstep でより滑らかな遷移を実現。
-float ComputeAutoFade(float2 ledUV)
+// LED ドットのスクリーン上のピクセル密度を ddx/ddy で測定し、
+// ドットがサブピクセル化するにつれてフラットエミッションにフェードする。
+//
+// 解像度、FOV、視線角すべてを暗黙的に考慮するため、
+// カメラパラメータに依存せず一貫した結果を返す。
+//
+// coverage = 1スクリーンピクセルあたりの LED セル数 (UV 変化量)
+//   値が小さい → LED ドットが大きく見える (サブピクセル表示)
+//   値が大きい → LED ドットが細かい (フェードしてフラット表示)
+//
+// _FadeStart: これ以下の coverage ではフェードなし (サブピクセル表示)
+// _FadeEnd:   これ以上の coverage では完全フェード (フラット表示)
+// _FadeBias:  フェードカーブの形状 (<1=早期ブレンド, >1=遅延ブレンド)
+//
+float ComputeFade(float2 ledUV)
 {
     float2 dx = ddx(ledUV);
     float2 dy = ddy(ledUV);
     float coverage = max(length(dx), length(dy));
 
-    // coverage < 0.3: LED ドットが十分解像 => フェードなし
-    // coverage > 0.8: サブピクセル化 => 完全フェード
-    // smoothstep で TAA/DLSS に優しい滑らかな遷移カーブ
-    return smoothstep(0.3, 0.8, coverage);
+    float fade = smoothstep(_FadeStart, max(_FadeEnd, _FadeStart + 0.01), coverage);
+
+    return pow(fade, _FadeBias);
+}
+
+// ============================================================================
+// Debug: Fade Visualization
+//
+// _DebugFadeVis:
+//   0 = Off
+//   1 = Fade Value
+//
+// 青 = フェードなし (LED ドット表示)
+// 緑 = 部分フェード (遷移中)
+// 赤 = 完全フェード (フラットカラー)
+// ============================================================================
+float3 DebugFadeColor(float fadeValue)
+{
+    float3 col = float3(0, 0, 0);
+    col.g = saturate(1.0 - abs(fadeValue - 0.5) * 2.0);
+    col.r = saturate(fadeValue);
+    col.b = saturate(1.0 - fadeValue * 3.0);
+    return col;
 }
 
 // ============================================================================
 // Subpixel LED Rendering (Core)
 // ============================================================================
-
-// ============================================================================
-// LED サブピクセルレンダリング
 //
 // 2つのモードをサポート:
 //   1. プロシージャルモード (_ProceduralLEDEnabled = 1):
@@ -89,7 +88,7 @@ float ComputeAutoFade(float2 ledUV)
 //   2. テクスチャモード (_ProceduralLEDEnabled = 0):
 //      従来の _LEDTex RGB マスクによるサブピクセル描画。
 //
-// 両モードとも共通のフェード処理で遠距離/サブピクセル時にフラットエミッションに遷移。
+// fade (0..1) に応じてサブピクセル LED ⇔ フラットエミッションを補間。
 // ============================================================================
 float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
 {
@@ -105,8 +104,7 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
     if (fade >= 0.999)
     {
         // 完全フェード時は LED 処理をスキップ
-        ledColor = inputColor.rgb * intensity;
-        ledColor *= _DistantFadeBrightness.rgb;
+        ledColor = inputColor.rgb;
     }
     else
     {
@@ -116,13 +114,10 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
         UNITY_BRANCH
         if (_ProceduralLEDEnabled > 0.5)
         {
-            // プロシージャルモード: SDF ベースの LED ドット描画
-            // エネルギー補償付きで、ドット面積に反比例した高輝度を実現
             subpixelColor = ProceduralSubpixelLED(ledUV, inputColor.rgb);
         }
         else
         {
-            // テクスチャモード: 従来の LED マスクテクスチャによる描画
             float4 ledMask = SAMPLE_TEXTURE2D(_LEDTex, sampler_LEDTex, ledUV);
             subpixelColor = float3(
                 inputColor.r * ledMask.r,
@@ -131,20 +126,14 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
             );
         }
 
-        // --- 共通フェード処理 ---
+        // --- フェード補間 ---
         // 近距離: サブピクセル LED（高コントラスト）
         // 遠距離: フラットエミッション（入力色そのまま）
-        float3 flatColor = inputColor.rgb;
-        ledColor = lerp(subpixelColor, flatColor, fade);
-
-        ledColor *= intensity;
-
-        // 遠距離輝度補正
-        ledColor = lerp(ledColor, ledColor * _DistantFadeBrightness.rgb, fade);
+        ledColor = lerp(subpixelColor, inputColor.rgb, fade);
     }
 
-    // エミッションカラーティント
-    ledColor *= _EmissionColor.rgb;
+    // 輝度 + エミッションカラーティント
+    ledColor *= intensity * _EmissionColor.rgb;
 
     return float4(ledColor, 1.0);
 }
@@ -186,21 +175,5 @@ void ApplyCabinetGrid(
     // Dim emission at seam locations
     emissiveScale *= lerp(1.0, 0.3, seam);
 }
-
-// ============================================================================
-// Motion Vectors
-// ============================================================================
-//
-// LED パネルは映像コンテンツが毎フレーム変化するため、
-// TAA/DLSS のテンポラル蓄積がゴースト/残像を引き起こす。
-//
-// 対策: URP/HDRP の MotionVectors パスで意図的に大きなモーションベクターを
-// 出力し、TAA/DLSS にヒストリーサンプルを棄却させる。
-// これにより各フレームの現在値のみが使用され、ゴーストが防止される。
-//
-// 実装は LEDScreen.shader 内の各パイプライン SubShader に
-// HLSLPROGRAM ベースの専用パスとして配置。
-// CGPROGRAM は UnityCG.cginc の定数バッファレイアウトが
-// パイプラインの期待と競合するため使用しない。
 
 #endif // LEDSCREEN_CORE_INCLUDED

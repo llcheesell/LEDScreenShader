@@ -18,12 +18,7 @@
 // Pipeline Abstraction Macros
 // ============================================================================
 
-// HDRP はカメラ相対レンダリング: カメラ位置 = 原点
-// positionRWS (Relative World Space) からカメラまでの距離 = length(posRWS)
-#define LED_CAMERA_DISTANCE(worldPos) length(worldPos)
-
-// FOV: HDRP projection matrix [1][1] = cot(verticalFOV / 2)
-#define LED_FOV_COT UNITY_MATRIX_P[1][1]
+// (LED_CAMERA_DISTANCE / LED_FOV_COT は AutoFade 移行により不要)
 
 // ============================================================================
 // Texture Declarations (SRP Texture System)
@@ -49,10 +44,10 @@ float  _LEDTilingY;
 float4 _EmissionColor;
 float  _IntensityMultiplier;
 
-// Distant Fade
-float  _DistantFadeStart;
-float  _DistantFadeEnd;
-float4 _DistantFadeBrightness;
+// LED Fade
+float  _FadeStart;
+float  _FadeEnd;
+float  _FadeBias;
 
 // Cabinet Grid
 float  _CabinetGridEnabled;
@@ -83,5 +78,8 @@ float  _OcclusionStrength;
 
 // TAA Ghost Prevention
 float  _InvalidateMotionVectors;
+
+// Debug
+float  _DebugFadeVis;
 
 #endif // LEDSCREEN_HDRP_INCLUDED

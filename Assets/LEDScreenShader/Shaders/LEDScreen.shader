@@ -47,14 +47,14 @@ Shader "llcheesell/LEDScreen"
         _IntensityMultiplier   ("Intensity", Range(0.1, 50)) = 1.0
 
         // =====================================================================
-        // Distant Fade
+        // LED Fade (Screen-Space Density)
         // =====================================================================
         [Space(10)]
-        [Header(Distant Fade)]
+        [Header(LED Fade)]
         [Space(5)]
-        _DistantFadeStart      ("Start Distance", Float)   = 3.0
-        _DistantFadeEnd        ("End Distance",   Float)   = 6.0
-        _DistantFadeBrightness ("Fade Brightness", Color)  = (1,1,1,1)
+        _FadeStart             ("Fade Start (coarse = subpixel)", Range(0.05, 1.0)) = 0.3
+        _FadeEnd               ("Fade End (fine = flat emission)", Range(0.1, 2.0)) = 0.8
+        _FadeBias              ("Fade Bias", Range(0.1, 3.0)) = 1.0
 
         // =====================================================================
         // Cabinet Grid
@@ -109,6 +109,15 @@ Shader "llcheesell/LEDScreen"
         [Space(5)]
         [Toggle]
         _InvalidateMotionVectors ("Force Large Motion Vectors", Float) = 1.0
+
+        // =====================================================================
+        // Debug
+        // =====================================================================
+        [Space(10)]
+        [Header(Debug)]
+        [Space(5)]
+        [Enum(Off,0,Fade Value,1)]
+        _DebugFadeVis ("Fade Visualization", Float) = 0
     }
 
     // ========================================================================
@@ -179,9 +188,10 @@ Shader "llcheesell/LEDScreen"
         float2 ledUV   = GetLEDUV(IN.uv);
 
         // ---- LED fade ----
-        float distFade = ComputeDistantFade(IN.positionWS);
-        float autoFade = ComputeAutoFade(ledUV);
-        float fade     = max(distFade, autoFade);
+        float fade = ComputeFade(ledUV);
+
+        // ---- Debug ----
+        if (_DebugFadeVis > 0.5) return half4(DebugFadeColor(fade), 1.0);
 
         // ---- LED emission ----
         float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
@@ -518,20 +528,17 @@ Shader "llcheesell/LEDScreen"
 
             float4 FragForwardHDRP(ForwardVaryingsHDRP input) : SV_Target
             {
-                // ---- UV ----
                 float2 inputUV = GetInputUV(input.uv);
                 float2 ledUV   = GetLEDUV(input.uv);
 
-                // ---- Fade ----
-                float distFade = ComputeDistantFade(input.positionRWS);
-                float autoFade = ComputeAutoFade(ledUV);
-                float fade     = max(distFade, autoFade);
+                float fade = ComputeFade(ledUV);
 
-                // ---- LED emission ----
+                // Debug
+                if (_DebugFadeVis > 0.5) return float4(DebugFadeColor(fade), 1.0);
+
                 float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
                 float3 emission  = ledResult.rgb;
 
-                // ---- Cabinet grid ----
                 float3 normalTS = float3(0, 0, 1);
                 float emissiveScale = 1.0;
                 ApplyCabinetGrid(input.uv, normalTS, emissiveScale);
