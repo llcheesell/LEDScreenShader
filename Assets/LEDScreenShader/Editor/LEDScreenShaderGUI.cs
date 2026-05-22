@@ -11,7 +11,7 @@ namespace Llcheesell.LEDScreenShader.Editor
 public class LEDScreenShaderGUI : ShaderGUI
 {
     // ========================================================================
-    // Foldout state (persisted across inspector redraws via SessionState)
+    // Foldout state kept in static fields across inspector redraws.
     // ========================================================================
     static bool _foldInputScreen     = true;
     static bool _foldLEDSubpixel     = true;
@@ -250,6 +250,7 @@ public class LEDScreenShaderGUI : ShaderGUI
 
         MaterialProperty enableProp = FindProp("_BaseMaterialEnabled", properties);
         bool enabled = enableProp.floatValue > 0.5f;
+        bool hdrpActive = IsHDRPActive();
 
         _foldSurfaceMaterial = EditorGUILayout.BeginFoldoutHeaderGroup(
             _foldSurfaceMaterial, "Surface Material");
@@ -257,6 +258,16 @@ public class LEDScreenShaderGUI : ShaderGUI
         if (_foldSurfaceMaterial)
         {
             EditorGUI.indentLevel++;
+
+            if (hdrpActive)
+            {
+                EditorGUILayout.HelpBox(
+                    "HDRP uses the LED emission path only. Surface Material controls are available for URP and Built-in fallback.",
+                    MessageType.Info);
+                EditorGUI.indentLevel--;
+                EditorGUILayout.EndFoldoutHeaderGroup();
+                return;
+            }
 
             // 有効/無効チェックボックス
             EditorGUI.BeginChangeCheck();
@@ -336,6 +347,12 @@ public class LEDScreenShaderGUI : ShaderGUI
     static MaterialProperty FindProp(string name, MaterialProperty[] properties)
     {
         return FindProperty(name, properties);
+    }
+
+    static bool IsHDRPActive()
+    {
+        UnityEngine.Rendering.RenderPipelineAsset pipeline = UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline;
+        return pipeline != null && pipeline.GetType().FullName.Contains("HighDefinition");
     }
 }
 }

@@ -23,7 +23,7 @@ HDRP / URPではUnity 2021およびUnity 6000.3.15で動作確認しています
 * **Subpixel RGB Separation** — LED texture RGB channels act as per-subpixel masks, reproducing red, green, and blue LED elements.
 * **Procedural LED Patterns** — Includes procedural LED layouts such as stripe, grid, and honeycomb.
 * **HDR Brightness Control** — Intensity Multiplier is suitable for high-luminance HDRP/URP scenes.
-* **FOV-Corrected Distant Fader** — Reduces moire by fading LED detail according to camera distance and field of view.
+* **Screen-Space LED Fade** — Reduces moire by fading LED detail according to screen-space LED density.
 * **DDX/DDY Auto-Fade** — Uses screen-space coverage to automatically reduce excessive LED detail.
 * **Cabinet Grid** — Renders panel cabinet seams with configurable width, depth, and per-cabinet brightness variation.
 * **Motion Vectors** — Provides camera motion vector support for TAA ghosting reduction in HDRP/URP.
@@ -38,14 +38,14 @@ HDRP / URPではUnity 2021およびUnity 6000.3.15で動作確認しています
 
 ![LED panel textures](Docs~/shaderv003.png)
 
-* Distant Fader for moire reduction
+* LED fade for moire reduction
 
-![Distant Fader](Docs~/DistantFader2.gif)
+![LED fade](Docs~/DistantFader2.gif)
 
 ## Usage
 
 1. Create a new material and set the shader to `llcheesell/LEDScreen`.
-2. Set the texture or RenderTexture to **Input Texture**.
+2. Set the texture or RenderTexture to **Input Screen Texture**.
 3. Select an LED texture or procedural LED pattern.
 4. Adjust **Intensity Multiplier** based on the scene exposure and bloom settings.
 
@@ -82,17 +82,17 @@ LEDの発光パターンを指定します。R/G/Bチャンネルがそれぞれ
 * **Procedural LED** — Generates LED layouts procedurally without a texture.<br>
 テクスチャを使わず、シェーダー内でLED配列を生成します。
 * **LED Columns / Rows** (`_LEDTilingX`, `_LEDTilingY`) — Number of LED tiles in X/Y.<br>
-LEDパターンのタイリング数を設定します。
+LEDパターンの横方向/縦方向のタイリング数を設定します。
 
 **Brightness**
 
 * **Intensity Multiplier** (`_IntensityMultiplier`) — Emission intensity for HDR lighting and bloom workflows.
 
-**Distant Fader**
+**LED Fade**
 
-* **Distant Fade Start/End** (`_FadeStart`, `_FadeEnd`) — Screen-space density range where LED detail fades to reduce moire.<br>
-スクリーンスペース密度に応じてLEDディテールをフェードし、モアレを抑制します。
-* **Distant Fade Bias** (`_FadeBias`) — Fade curve exponent (`<1` = early blend, `>1` = delayed blend) while LED detail is faded.
+* **Fade Start / End** (`_FadeStart`, `_FadeEnd`) — Screen-space density range where LED detail fades to reduce moire.<br>
+画面上のLED密度に応じてLEDディテールをフェードし、モアレを抑制します。
+* **Fade Bias** (`_FadeBias`) — Fade curve exponent (`<1` = early blend, `>1` = delayed blend) while LED detail is faded.
 
 **Cabinet Grid**
 
@@ -103,8 +103,8 @@ LEDパターンのタイリング数を設定します。
 
 **Base Material**
 
-* **Base Texture / Normal Map / Mask Map** (`_BaseMap`, `_NormalMap`, `_MaskMap`) — PBR surface properties. MaskMap channels: R=Metallic, G=AO, A=Smoothness.<br>
-パネル本体のベースマテリアルを設定します。
+* **Base Texture / Normal Map / Mask Map** (`_BaseMap`, `_NormalMap`, `_MaskMap`) — PBR surface properties for URP and Built-in fallback. HDRP uses the LED emission path only. MaskMap channels: R=Metallic, G=AO, A=Smoothness.<br>
+URPおよびBuilt-in fallback向けのパネル本体ベースマテリアルを設定します。HDRPではLEDエミッションのみを使用します。
 
 ## Notes
 

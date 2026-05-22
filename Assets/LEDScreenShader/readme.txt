@@ -58,7 +58,7 @@ GitHubパッケージの更新後にMissing Shaderになったマテリアルも
 * Subpixel RGB separation
 * Procedural LED patterns
 * HDR brightness control
-* FOV-corrected distant fader for moire reduction
+* Screen-space LED fade for moire reduction
 * DDX/DDY auto-fade
 * Cabinet grid rendering
 * Motion vector support for HDRP/URP
@@ -73,23 +73,24 @@ Apply the texture or RenderTexture shown on the panel.
 Use an RGB subpixel mask texture, or generate LED layouts procedurally.
 LEDの発光パターンを指定します。テクスチャ、またはプロシージャルLED配列を使用できます。
 
-* LED Tiling
-Sets the number of LED tiles.
-LEDパターンのタイリング数を設定します。
+* LED Columns / Rows
+Sets the number of LED tiles in X/Y using `_LEDTilingX` and `_LEDTilingY`.
+LEDパターンの横方向/縦方向のタイリング数を設定します。
 
 * Intensity Multiplier
 Controls emission intensity for HDR lighting and bloom workflows.
 
-* Distant Fade Start/End
-Fades LED detail according to camera distance and field of view to reduce moire.
-カメラ距離とFOVに応じてLEDディテールをフェードし、モアレを抑制します。
+* Fade Start/End/Bias
+Fades LED detail according to screen-space LED density using `_FadeStart`, `_FadeEnd`, and `_FadeBias`.
+画面上のLED密度に応じてLEDディテールをフェードし、モアレを抑制します。
 
 * Cabinet Grid
 Renders cabinet module seams with adjustable width, depth, and brightness variance.
+Use `_CabinetColumns` and `_CabinetRows` to set the module count.
 
 * Base Texture / Normal Map / Mask Map
-Controls the base PBR material of the panel.
-パネル本体のベースマテリアルを設定します。
+Controls the base PBR material of the panel for URP and Built-in fallback. HDRP uses the LED emission path only.
+URPおよびBuilt-in fallback向けのパネル本体ベースマテリアルを設定します。HDRPではLEDエミッションのみを使用します。
 
 ## Notes
 

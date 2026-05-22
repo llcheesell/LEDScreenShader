@@ -373,7 +373,7 @@ public static class LEDScreenShaderMigration
         }
 
         float cullMode;
-        if (TryGetFloat(snapshot, out cullMode, "_CullMode"))
+        if (TryGetFloat(snapshot, out cullMode, "_CullMode", "_Cull"))
         {
             material.SetFloat("_CullMode", cullMode);
         }
