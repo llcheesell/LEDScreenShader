@@ -1,59 +1,84 @@
 # LEDScreenShader
 
-**LEDScreenShader is a shader that draws realistic LED panels on Unity's Scriptable and Built-in render pipelines.**<br>
-**LEDScreenShaderは高品質なLEDパネルを表現するシェーダーです。**<br>
+LEDScreenShader is a native HLSL shader for rendering realistic LED panels in Unity.
+LEDScreenShaderはUnity上で高品質なLEDパネル表現を行うネイティブHLSLシェーダーです。
 
-Supports URP, HDRP, and Built-in render pipelines with a single native HLSL shader (`llcheesell/LEDScreen`).
+The current version replaces the previous Shader Graph implementation with the native shader `llcheesell/LEDScreen`.
+HDRP and URP are the main supported render pipelines.
+Built-in Render Pipeline includes only a simplified fallback shader and is not officially supported.
+
+現在のバージョンでは、従来のShader Graph実装からネイティブシェーダー `llcheesell/LEDScreen` へ移行しています。
+主な対応対象はHDRP / URPです。
+Built-in Render Pipeline向けには簡易的なFallbackシェーダーを同梱していますが、公式サポート対象外です。
+
+## Render Pipeline Support
+
+* HDRP: Supported and tested
+* URP: Supported and tested
+* Built-in Render Pipeline: Simplified fallback only, not officially supported
+
+HDRP / URPではUnity 2021およびUnity 6000.3.15で動作確認しています。
+Built-in Render Pipelineは未検証のため、サポート対象外として扱います。
 
 ## Usage
 
-1. Create a new material and set shader to `llcheesell/LEDScreen`
-2. Set texture to InputTexture
-3. Adjust brightness by tweaking IntensityMultiplier. The best number may vary based on the scene exposure.
+1. Create a new material and set the shader to `llcheesell/LEDScreen`.
+2. Set the texture or RenderTexture to Input Texture.
+3. Select an LED texture or procedural LED pattern.
+4. Adjust Intensity Multiplier based on the scene exposure and bloom settings.
 
-* Input Texture<br>
-Apply the texture you want to project to the panel. You can put a video via RenderTexture.<br>
-パネルに投影するテクスチャを適用します。
+## Main Features
 
-* LED Texture<br>
-Set the LED texture. RGB channels act as subpixel masks (R=red, G=green, B=blue).<br>
-LEDのテクスチャを適用します。このパッケージにはいくつかのサンプルが含まれています。
+* Native HLSL shader
+* Subpixel RGB separation
+* Procedural LED patterns
+* HDR brightness control
+* FOV-corrected distant fader for moire reduction
+* DDX/DDY auto-fade
+* Cabinet grid rendering
+* Motion vector support for HDRP/URP
 
-* BaseTexture/NormalTexture/MaskMap<br>
-This is the base material setting for the panel.
-MaskMap: R=Metallic, G=AO, A=Smoothness.<br>
-パネルのベースマテリアルを設定します。
+## Main Properties
 
-* LED Tiling<br>
-Sets the number of tiles of the LED panel.<br>
-LEDテクスチャのタイリングを設定します。
+* Input Texture
+Apply the texture or RenderTexture shown on the panel.
+パネルに表示するテクスチャ、またはRenderTextureを指定します。
 
-* DistantFadeStart/End<br>
-Fades the LED texture according to the distance from the camera. FOV-corrected. This prevents moiré effects.<br>
-カメラからの距離に従ってLEDテクスチャを無効化します。これによってモアレ効果を防ぐことができます。
+* LED Texture / Procedural LED
+Use an RGB subpixel mask texture, or generate LED layouts procedurally.
+LEDの発光パターンを指定します。テクスチャ、またはプロシージャルLED配列を使用できます。
 
-* DistantFadeBrightness<br>
-This value allows you to adjust the brightness change caused by the fading of the LED texture.<br>
-DistantFadeによって明るさの変化が生じたときに、HDRカラーで明るさを調整することが出来ます。
+* LED Tiling
+Sets the number of LED tiles.
+LEDパターンのタイリング数を設定します。
 
-* Cabinet Grid<br>
-Enable to render cabinet module seams with adjustable width, depth, and per-cabinet brightness variance.
+* Intensity Multiplier
+Controls emission intensity for HDR lighting and bloom workflows.
 
-* MotionVectors (URP/HDRP only)<br>
-Camera-only motion vectors for TAA ghost rejection. Built-in pipeline users should use SMAA instead of TAA.
+* Distant Fade Start/End
+Fades LED detail according to camera distance and field of view to reduce moire.
+カメラ距離とFOVに応じてLEDディテールをフェードし、モアレを抑制します。
 
-[Video Guide](https://www.youtube.com/watch?v=6b-_SwUf9jM)
+* Cabinet Grid
+Renders cabinet module seams with adjustable width, depth, and brightness variance.
 
+* Base Texture / Normal Map / Mask Map
+Controls the base PBR material of the panel.
+パネル本体のベースマテリアルを設定します。
 
-## Note
-* Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
-リニアカラースペースでの使用を推奨。
+## Notes
 
-* The combination use of Bloom Post Processing is recommended.<br>
-Bloomポストエフェクトの併用を推奨。
+* Linear Color Space is recommended.
+リニアカラースペースでの使用を推奨します。
 
-* Built-in render pipeline does not support MotionVectors. Use SMAA for anti-aliasing.<br>
-Built-inレンダーパイプラインではSMAAの使用を推奨します。
+* Bloom post-processing is recommended for realistic LED brightness.
+リアルなLED発光表現にはBloomポストエフェクトの併用を推奨します。
 
-*Credit, or notice of use is not required but much appreciated!*
+* Built-in Render Pipeline is not officially supported. The included fallback shader is intended only as a simplified compatibility path.
+Built-in Render Pipelineは公式サポート対象外です。同梱のFallbackシェーダーは簡易互換用として扱ってください。
+
+* Legacy Shader Graph files are preserved in `Shaders/Legacy/` for reference only. The main supported shader is `llcheesell/LEDScreen`.
+旧Shader Graphファイルは参考用として`Shaders/Legacy/`に残しています。現在の主なサポート対象は`llcheesell/LEDScreen`です。
+
+Credit, or notice of use is not required but much appreciated!
 twitter.com/llcheesell

@@ -8,7 +8,7 @@
       "url": "https://llcheesell.com"
     },
     "unity": "2020.3",
-    "description": "Realistic LED panel shader with subpixel rendering, supporting URP, HDRP, and Built-in pipelines",
+    "description": "Native HLSL LED panel shader for HDRP and URP, with a simplified Built-in fallback",
     "keywords": [
       "shader",
       "HLSL",
