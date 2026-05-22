@@ -492,6 +492,7 @@ Shader "llcheesell/LEDScreen"
             // ForwardOnly は ZTest Equal で一致ピクセルのみ描画。
             // HLSLPROGRAM + HDRP インクルードにより、両パスで同一の
             // 行列変換パスを使用し、深度値の一致を保証する。
+            // ShaderVariables.hlsl already provides HDRP light-loop globals.
             ZTest Equal
             ZWrite Off
 
