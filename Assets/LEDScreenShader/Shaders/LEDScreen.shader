@@ -554,7 +554,66 @@ Shader "llcheesell/LEDScreen"
                 ApplyCabinetGrid(input.uv, normalTS, emissiveScale);
                 emission *= emissiveScale;
 
-                return float4(emission, 1.0);
+                UNITY_BRANCH
+                if (_BaseMaterialEnabled < 0.5)
+                {
+                    return float4(emission, 1.0);
+                }
+
+                float2 baseTexUV = GetBaseUV(input.uv);
+                float4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseTexUV) * _BaseColor;
+
+                float3 normalMapVal = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseTexUV));
+                normalTS.xy += normalMapVal.xy * _NormalStrength;
+                normalTS = normalize(normalTS);
+
+                float4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, baseTexUV);
+                float metallic = maskMap.r * _Metallic;
+                float ao = lerp(1.0, maskMap.g, _OcclusionStrength);
+                float smoothness = maskMap.a * _Smoothness;
+                float perceptualRoughness = saturate(1.0 - smoothness);
+                float roughness = max(perceptualRoughness * perceptualRoughness, 0.001);
+
+                float3 tangentWS = normalize(input.tangentWS.xyz);
+                float3 normalBaseWS = normalize(input.normalWS);
+                float3 bitangentWS = input.tangentWS.w * normalize(cross(normalBaseWS, tangentWS));
+                float3x3 tangentToWorld = float3x3(tangentWS, bitangentWS, normalBaseWS);
+                float3 normalWS = normalize(mul(normalTS, tangentToWorld));
+
+                float3 viewDir = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+                float NdotV = max(saturate(dot(normalWS, viewDir)), 1e-4);
+
+                float3 specColor = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);
+                float3 diffuseAlbedo = baseColor.rgb * (1.0 - metallic);
+
+                float3 directLighting = float3(0.0, 0.0, 0.0);
+                uint directionalCount = min(_DirectionalLightCount, 4u);
+                for (uint lightIndex = 0u; lightIndex < directionalCount; ++lightIndex)
+                {
+                    DirectionalLightData lightData = _DirectionalLightDatas[lightIndex];
+                    float3 lightDir = normalize(-lightData.forward);
+                    float NdotL = saturate(dot(normalWS, lightDir));
+
+                    UNITY_BRANCH
+                    if (NdotL > 0.0)
+                    {
+                        float3 halfDir = normalize(lightDir + viewDir);
+                        float NdotH = saturate(dot(normalWS, halfDir));
+                        float LdotH = saturate(dot(lightDir, halfDir));
+
+                        float D = D_GGX(NdotH, roughness);
+                        float V = V_SmithJointGGX(NdotL, NdotV, roughness);
+                        float3 F = specColor + (1.0 - specColor) * pow(1.0 - LdotH, 5.0);
+
+                        float3 diffuse = diffuseAlbedo * INV_PI * lightData.diffuseDimmer;
+                        float3 specular = D * V * F * lightData.specularDimmer;
+                        directLighting += (diffuse + specular) * lightData.color * lightData.lightDimmer * NdotL;
+                    }
+                }
+
+                float3 ambientDiffuse = EvaluateAmbientProbe(normalWS) * diffuseAlbedo * ao;
+                float3 finalColor = directLighting + ambientDiffuse + emission;
+                return float4(finalColor, baseColor.a);
             }
             ENDHLSL
         }

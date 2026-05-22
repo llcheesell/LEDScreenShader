@@ -89,8 +89,8 @@ Renders cabinet module seams with adjustable width, depth, and brightness varian
 Use `_CabinetColumns` and `_CabinetRows` to set the module count.
 
 * Base Texture / Normal Map / Mask Map
-Controls the base PBR material of the panel for URP and Built-in fallback. HDRP uses the LED emission path only.
-URPおよびBuilt-in fallback向けのパネル本体ベースマテリアルを設定します。HDRPではLEDエミッションのみを使用します。
+Controls the base PBR material of the panel.
+パネル本体のベースマテリアルを設定します。
 
 ## Notes
 

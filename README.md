@@ -103,8 +103,8 @@ LEDパターンの横方向/縦方向のタイリング数を設定します。
 
 **Base Material**
 
-* **Base Texture / Normal Map / Mask Map** (`_BaseMap`, `_NormalMap`, `_MaskMap`) — PBR surface properties for URP and Built-in fallback. HDRP uses the LED emission path only. MaskMap channels: R=Metallic, G=AO, A=Smoothness.<br>
-URPおよびBuilt-in fallback向けのパネル本体ベースマテリアルを設定します。HDRPではLEDエミッションのみを使用します。
+* **Base Texture / Normal Map / Mask Map** (`_BaseMap`, `_NormalMap`, `_MaskMap`) — PBR surface properties. MaskMap channels: R=Metallic, G=AO, A=Smoothness.<br>
+パネル本体のベースマテリアルを設定します。
 
 ## Notes
 
