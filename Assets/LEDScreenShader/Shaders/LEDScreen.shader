@@ -7,7 +7,7 @@ Shader "llcheesell/LEDScreen"
         // =====================================================================
         [Header(Input Screen)]
         [Space(5)]
-        _InputTex         ("Texture", 2D)  = "white" {}
+        _InputTex         ("Input Screen Texture", 2D)  = "white" {}
 
         // =====================================================================
         // LED Subpixel
@@ -769,5 +769,5 @@ Shader "llcheesell/LEDScreen"
     }
 
     Fallback "Diffuse"
-    CustomEditor "LEDScreenShaderGUI"
+    CustomEditor "Llcheesell.LEDScreenShader.Editor.LEDScreenShaderGUI"
 }

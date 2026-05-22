@@ -1,6 +1,8 @@
 using UnityEditor;
 using UnityEngine;
 
+namespace Llcheesell.LEDScreenShader.Editor
+{
 /// <summary>
 /// Custom ShaderGUI for LEDScreen shader.
 /// Provides foldable sections for all property groups and
@@ -33,7 +35,7 @@ public class LEDScreenShaderGUI : ShaderGUI
         {
             MaterialProperty inputTex = FindProp("_InputTex", properties);
             materialEditor.TexturePropertySingleLine(
-                new GUIContent("Texture"), inputTex);
+                new GUIContent("Input Screen Texture"), inputTex);
             EditorGUI.indentLevel += 2;
             materialEditor.TextureScaleOffsetProperty(inputTex);
             EditorGUI.indentLevel -= 2;
@@ -335,4 +337,5 @@ public class LEDScreenShaderGUI : ShaderGUI
     {
         return FindProperty(name, properties);
     }
+}
 }
