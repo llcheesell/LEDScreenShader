@@ -1,69 +1,110 @@
 # LEDScreenShader
 
-**LEDScreenShader is a shader that draws realistic LED panels on Unity's Scriptable and Built-in render pipelines.**<br>
-**LEDScreenShaderは高品質なLEDパネルを表現するシェーダーです。**<br>
+LEDScreenShader is a native HLSL shader for rendering realistic LED panels in Unity.
+LEDScreenShaderはUnity上で高品質なLEDパネル表現を行うネイティブHLSLシェーダーです。
 
-Currently URP and HDRP is the target render pipeline since it's developed with Shader Graph.<br>
-The built-in shader is also included with minimum functionality implemented.
+The current version replaces the previous Shader Graph implementation with the native shader `llcheesell/LEDScreen`.
+HDRP and URP are the main supported render pipelines.
+Built-in Render Pipeline includes only a simplified fallback shader and is not officially supported.
+
+現在のバージョンでは、従来のShader Graph実装からネイティブシェーダー `llcheesell/LEDScreen` へ移行しています。
+主な対応対象はHDRP / URPです。
+Built-in Render Pipeline向けには簡易的なFallbackシェーダーを同梱していますが、公式サポート対象外です。
+
+## Render Pipeline Support
+
+* HDRP: Supported and tested
+* URP: Supported and tested
+* Built-in Render Pipeline: Simplified fallback only, not officially supported
+
+HDRP / URPではUnity 2021およびUnity 6000.3.15で動作確認しています。
+Built-in Render Pipelineは未検証のため、サポート対象外として扱います。
 
 ## Usage
 
-1. Create a new material and set shader to appropriate Render-Pipeline's LEDScreenShader.
-2. set texture to InputVideo
-3. Adjust brightness by tweaking IntensityMultiplier. The best number may vary based on the scene exposure.
+1. Create a new material and set the shader to `llcheesell/LEDScreen`.
+2. Set the texture or RenderTexture to Input Texture.
+3. Select an LED texture or procedural LED pattern.
+4. Adjust Intensity Multiplier based on the scene exposure and bloom settings.
 
-* InputVideo<br>
-Apply the texture you want to project to the panel. You can put a video via RenderTexture.<br>
-パネルに投影するテクスチャを適用します。
+## Offline Documentation
 
-* LED Texture<br>
-Set the LED texture. This texture will be multiplied by the InputVideo.<br>
-The package include several LED Texture.<br>
-LEDのテクスチャを適用します。このパッケージにはいくつかのサンプルが含まれています。
+The Asset Store package includes Documentation/LEDScreenShader_Start_Guide.pdf.
+It contains a numbered English start guide, setup steps, shader property reference, migration notes, troubleshooting, and a Japanese quick guide.
 
-* BaseTexture/NormalTexture/AlphaMap/MaskMap<br>
-This is the base material setting for the panel.
-Metalic and Smoothness will be multiplied to MaskMap.<br>
-パネルのベースマテリアルを設定します。
+## Migration
 
-* Tiling/Offset<br>
-Sets the number of tiles and offset of the LED panel.<br>
-LEDテクスチャのタイリングを設定します。
+Version 2.0 replaces the previous Shader Graph implementation with the native shader `llcheesell/LEDScreen`.
 
-* DistantFadeStart/End<br>
-Fades the LED texture according to the distance from the camera. This prevents moiré effects.<br>
-カメラからの距離に従ってLEDテクスチャを無効化します。これによってモアレ効果を防ぐことができます。
+If legacy Shader Graph materials are found, LEDScreenShader shows a migration prompt in the Unity Editor.
+You can also run the migration manually from Tools > LEDScreenShader > Migrate Legacy Materials to Native Shader.
 
-* DistantFadeBrightness<br>
-This value allows you to adjust the brightness change caused by the fading of the LED texture.<br>
-DistantFadeによって明るさの変化が生じたときに、HDRカラーで明るさを調整することが出来ます。
+The migration tool detects materials that still reference the previous Shader Graph shaders, including materials that appear as Missing Shader after updating from the GitHub package.
+The old input/video texture is assigned to Input Screen Texture (`_InputTex`).
+Compatible LED textures, LED tiling, input texture tiling/offset, emission color, and intensity are copied to the native shader where possible.
 
-*Grid parameters are currently disabled due to quality issue.*
+Version 2.0では、従来のShader Graph実装からネイティブシェーダー`llcheesell/LEDScreen`へ移行しています。
 
+旧Shader Graphを参照しているマテリアルが見つかった場合、Unity Editor上で移行プロンプトが表示されます。
+手動で実行する場合は Tools > LEDScreenShader > Migrate Legacy Materials to Native Shader を使用してください。
 
-[Video Guide](https://www.youtube.com/watch?v=6b-_SwUf9jM)
+GitHubパッケージの更新後にMissing Shaderになったマテリアルも、既知の旧Shader GUIDから検出して移行できます。
+旧Input/Videoテクスチャは Input Screen Texture（`_InputTex`）に割り当てます。
+互換性のあるLEDテクスチャ、LEDタイリング、Input TextureのTiling/Offset、Emission Color、Intensityは可能な範囲で引き継ぎます。
 
+## Main Features
 
-## Note
-* Optimized for Linear Color Space. It could be used in Gamma Color Space but the bright area tend to be clamped.<br>
-リニアカラースペースでの使用を推奨。
+* Native HLSL shader
+* Subpixel RGB separation
+* Procedural LED patterns
+* HDR brightness control
+* Screen-space LED fade for moire reduction
+* DDX/DDY auto-fade
+* Cabinet grid rendering
+* Motion vector support for HDRP/URP
 
-* If you have render problems in HDRP, please check/uncheck Recursive Rendering option in Shader Graph Editor.<br>
+## Main Properties
 
-* The combination use of Bloom Post Processing is recommended.<br>
-Bloomポストエフェクトの併用を推奨。
+* Input Texture
+Apply the texture or RenderTexture shown on the panel.
+パネルに表示するテクスチャ、またはRenderTextureを指定します。
 
-## Roadmap
-* Performance optimization disabling detailed textures along with distantFader
-* ~~Tile and Offset for InputVideo (completed)
-* ~~update Build-in Shader~~ (completed in v0.0.6)
-* ~~Support HDRP~~ (completed in v0.0.5)
-* ~~Moire prevention processing according to the distance from the camera~~ (completed in v0.0.4)
-* ~~Higher quality pixel textures ana materials~~ (completed in v0.0.2)
+* LED Texture / Procedural LED
+Use an RGB subpixel mask texture, or generate LED layouts procedurally.
+LEDの発光パターンを指定します。テクスチャ、またはプロシージャルLED配列を使用できます。
 
-Let me know if you have any suggestions and problems.<br>
-機能要望、提案などありましたらllcheesellまでお知らせください。
+* LED Columns / Rows
+Sets the number of LED tiles in X/Y using `_LEDTilingX` and `_LEDTilingY`.
+LEDパターンの横方向/縦方向のタイリング数を設定します。
 
+* Intensity Multiplier
+Controls emission intensity for HDR lighting and bloom workflows.
 
-*Credit, or notice of use is not required but much appreciated!*
+* Fade Start/End/Bias
+Fades LED detail according to screen-space LED density using `_FadeStart`, `_FadeEnd`, and `_FadeBias`.
+画面上のLED密度に応じてLEDディテールをフェードし、モアレを抑制します。
+
+* Cabinet Grid
+Renders cabinet module seams with adjustable width, depth, and brightness variance.
+Use `_CabinetColumns` and `_CabinetRows` to set the module count.
+
+* Base Texture / Normal Map / Mask Map
+Controls the base PBR material of the panel.
+パネル本体のベースマテリアルを設定します。
+
+## Notes
+
+* Linear Color Space is recommended.
+リニアカラースペースでの使用を推奨します。
+
+* Bloom post-processing is recommended for realistic LED brightness.
+リアルなLED発光表現にはBloomポストエフェクトの併用を推奨します。
+
+* Built-in Render Pipeline is not officially supported. The included fallback shader is intended only as a simplified compatibility path.
+Built-in Render Pipelineは公式サポート対象外です。同梱のFallbackシェーダーは簡易互換用として扱ってください。
+
+* The previous Shader Graph implementation is not included in the main package. The supported shader is `llcheesell/LEDScreen`.
+旧Shader Graph実装はメインパッケージには含めていません。現在のサポート対象は`llcheesell/LEDScreen`です。
+
+Credit, or notice of use is not required but much appreciated!
 twitter.com/llcheesell

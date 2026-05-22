@@ -7,29 +7,35 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: LEDScreenDetailedDHRP
-  m_Shader: {fileID: -6465566751694194690, guid: 7abaa2c3967eb2c43880aa8fb27d88de, type: 3}
-  m_ValidKeywords:
+  m_Name: LEDScreen
+  m_Shader: {fileID: 4800000, guid: 2272d0b0b07a14fd9b3a99b038da5401, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
   - _ALPHATEST_ON
+  - _CABINETGRIDENABLED_ON
   - _DISABLE_DECALS
   - _DISABLE_SSR_TRANSPARENT
   - _ENABLE_FOG_ON_TRANSPARENT
+  - _INVALIDATEMOTIONVECTORS_ON
+  - _PROCEDURALLEDENABLED_ON
+  - _SURFACEUVLINKLED_ON
   - _SURFACE_TYPE_TRANSPARENT
   - _UV_UV0
-  m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: 3000
+  m_CustomRenderQueue: -1
   stringTagMap:
     MotionVector: User
-    RenderType: Transparent
   disabledShaderPasses:
   - TransparentDepthPrepass
   - TransparentDepthPostpass
   - TransparentBackface
   - RayTracingPrepass
   - MOTIONVECTORS
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -66,7 +72,23 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 777b7b7fa6f454337acd8c31788290bf, type: 3}
+        m_Texture: {fileID: 2800000, guid: cdb43915b2cf04400a9107000ca8ab26, type: 3}
+        m_Scale: {x: 100, y: 56}
+        m_Offset: {x: 0, y: 0}
+    - _InputTex:
+        m_Texture: {fileID: 2800000, guid: a7640f15f7fe0074c9112958018e5b39, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LEDTex:
+        m_Texture: {fileID: 2800000, guid: 40995f7a6e4074451a7646b65ff61a06, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: 78bbb74e77f194cb09d583ed3be6658c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SampleTexture2D_e4e837ff1e6a430f924f8a3ca04ddb67_Texture_1:
@@ -133,18 +155,46 @@ Material:
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
+    - _BaseMaterialEnabled: 0
     - _BlendMode: 0
+    - _CabinetBrightnessVariance: 0
+    - _CabinetColumns: 10
+    - _CabinetGridEnabled: 1
+    - _CabinetRows: 6
+    - _CabinetSeamDepth: 0.3
+    - _CabinetSeamWidth: 0.005
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
+    - _DebugFadeVis: 0
     - _DepthOffsetEnable: 0
+    - _DistantFadeEnd: 15
+    - _DistantFadeStart: 3
     - _DoubleSidedEnable: 0
     - _DoubleSidedGIMode: 0
     - _DoubleSidedNormalMode: 2
     - _DstBlend: 10
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
+    - _ExcludeFromTUAndAA: 0
+    - _FadeBias: 1
+    - _FadeEnd: 1
+    - _FadeStart: 0.2
+    - _IntensityMultiplier: 1.5
+    - _InvalidateMotionVectors: 1
+    - _LEDTilingX: 300
+    - _LEDTilingY: 300
+    - _Metallic: 0.976
+    - _NormalStrength: 1
+    - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
+    - _ProceduralDotRadius: 0.8
+    - _ProceduralGlowIntensity: 0.15
+    - _ProceduralGlowRadius: 0.1
+    - _ProceduralHighlightStrength: 0.5
+    - _ProceduralHotspotStrength: 0.3
+    - _ProceduralLEDEnabled: 1
+    - _ProceduralLEDPattern: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RayTracing: 0
@@ -153,6 +203,7 @@ Material:
     - _RefractionModel: 0
     - _RenderQueueType: 4
     - _RequireSplitLighting: 0
+    - _Smoothness: 0.434
     - _SrcBlend: 1
     - _StencilRef: 0
     - _StencilRefDepth: 0
@@ -160,12 +211,13 @@ Material:
     - _StencilRefGBuffer: 2
     - _StencilRefMV: 32
     - _StencilWriteMask: 6
-    - _StencilWriteMaskDepth: 8
+    - _StencilWriteMaskDepth: 9
     - _StencilWriteMaskDistortionVec: 4
-    - _StencilWriteMaskGBuffer: 14
-    - _StencilWriteMaskMV: 40
+    - _StencilWriteMaskGBuffer: 15
+    - _StencilWriteMaskMV: 41
     - _SupportDecals: 0
     - _SurfaceType: 1
+    - _SurfaceUVLinkLED: 1
     - _TransparentBackfaceEnable: 0
     - _TransparentCullMode: 2
     - _TransparentDepthPostpassEnable: 0
@@ -187,9 +239,14 @@ Material:
     - Vector2_ae16db7065034506a055993c41bbe614_1: {r: 0, g: 0, b: 0, a: 0}
     - Vector2_ea01576358e3410993f3b88f3d7e3a6b: {r: 100, g: 100, b: 0, a: 0}
     - Vector2_ea01576358e3410993f3b88f3d7e3a6b_1: {r: 1, g: 1, b: 0, a: 0}
+    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _CabinetTiling: {r: 10, g: 10, b: 0, a: 0}
+    - _DistantFadeBrightness: {r: 0.735849, g: 0.735849, b: 0.735849, a: 1}
     - _DoubleSidedConstants: {r: 1, g: 1, b: -1, a: 0}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LEDTiling: {r: 100, g: 56, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &853549948551334953
 MonoBehaviour:
   m_ObjectHideFlags: 11
@@ -202,7 +259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da692e001514ec24dbc4cca1949ff7e8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 12
+  version: 13
   hdPluginSubTargetMaterialVersions:
     m_Keys: []
     m_Values: 
