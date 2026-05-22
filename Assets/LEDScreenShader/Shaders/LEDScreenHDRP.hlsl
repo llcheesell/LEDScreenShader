@@ -57,6 +57,13 @@ CBUFFER_START(UnityPerDrawRare)
     float4x4 glstate_matrix_transpose_modelview0;
 CBUFFER_END
 
+float4x4 OptimizeProjectionMatrix(float4x4 M)
+{
+    M._21_41 = 0;
+    M._12_42 = 0;
+    return M;
+}
+
 float4x4 LEDScreenApplyCameraTranslationToMatrix(float4x4 modelMatrix)
 {
 #if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
