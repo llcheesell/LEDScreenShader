@@ -17,6 +17,9 @@
 #include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/Lighting/LightDefinition.cs.hlsl"
+
+GLOBAL_RESOURCE(StructuredBuffer<DirectionalLightData>, _DirectionalLightDatas, RAY_TRACING_DIRECTIONAL_LIGHT_DATAS_REGISTER);
 
 #if defined(USING_STEREO_MATRICES)
     #define _WorldSpaceCameraPos _XRWorldSpaceCameraPos[unity_StereoEyeIndex].xyz
@@ -87,6 +90,16 @@ float4x4 LEDScreenApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMat
 #endif
 }
 
+float4x4 ApplyCameraTranslationToMatrix(float4x4 modelMatrix)
+{
+    return LEDScreenApplyCameraTranslationToMatrix(modelMatrix);
+}
+
+float4x4 ApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
+{
+    return LEDScreenApplyCameraTranslationToInverseMatrix(inverseModelMatrix);
+}
+
 #ifndef DOTS_INSTANCING_ON
 float4x4 LEDScreenGetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
 float4x4 LEDScreenGetRawUnityWorldToObject()     { return unity_WorldToObject; }
@@ -97,6 +110,17 @@ float4x4 LEDScreenGetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI
 #define UNITY_MATRIX_I_M      LEDScreenApplyCameraTranslationToInverseMatrix(LEDScreenGetRawUnityWorldToObject())
 #define UNITY_PREV_MATRIX_M   LEDScreenApplyCameraTranslationToMatrix(LEDScreenGetRawUnityPrevObjectToWorld())
 #define UNITY_PREV_MATRIX_I_M LEDScreenApplyCameraTranslationToInverseMatrix(LEDScreenGetRawUnityPrevWorldToObject())
+#endif
+
+#define MODIFY_MATRIX_FOR_CAMERA_RELATIVE_RENDERING
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/UnityInstancing.hlsl"
+
+#ifndef UNITY_VERTEX_INPUT_INSTANCE_ID
+    #define UNITY_VERTEX_INPUT_INSTANCE_ID
+#endif
+
+#ifndef UNITY_SETUP_INSTANCE_ID
+    #define UNITY_SETUP_INSTANCE_ID(input)
 #endif
 
 #include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
