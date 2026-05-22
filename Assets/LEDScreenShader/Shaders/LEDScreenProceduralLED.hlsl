@@ -8,8 +8,8 @@
 //
 // パターン:
 //   0 = Honeycomb Triangle (ハニカム三角形配置) — デフォルト
-//       RGB ドットを正三角形に配置し、六角格子で蜂の巣状にタイリング。
-//       偶数行は逆三角 ▽、奇数行は正三角 △ + X 半セルオフセット。
+//       RGB ドットを均等な三角格子に配置し、六角格子で蜂の巣状にタイリング。
+//       行ごとに半ピッチずらし、色は格子座標で循環させる。
 //   1 = Horizontal Stripe (水平ストライプ — 従来互換)
 //   2 = Vertical Rectangle (縦長矩形)
 //
@@ -65,6 +65,34 @@ float ComputeGlow(float sdf, float glowRadius, float glowIntensity)
     return glow * glow * glowIntensity;
 }
 
+// ----------------------------------------------------------------------------
+// Honeycomb helpers
+// ----------------------------------------------------------------------------
+float PositiveModulo(float value, float period)
+{
+    return value - floor(value / period) * period;
+}
+
+float HoneycombColorWeight(float colorIndex, float targetIndex)
+{
+    return 1.0 - step(0.5, abs(colorIndex - targetIndex));
+}
+
+void AccumulateHoneycombDot(
+    float2 p,
+    float2 center,
+    float colorIndex,
+    float radius,
+    inout float3 nearestSdf)
+{
+    float dotSdf = SDFCircle(p, center, radius);
+    float3 colorWeight = float3(
+        HoneycombColorWeight(colorIndex, 0.0),
+        HoneycombColorWeight(colorIndex, 1.0),
+        HoneycombColorWeight(colorIndex, 2.0));
+    nearestSdf = lerp(nearestSdf, min(nearestSdf, float3(dotSdf, dotSdf, dotSdf)), colorWeight);
+}
+
 // ============================================================================
 // メイン関数: プロシージャル LED サブピクセルレンダリング
 //
@@ -93,56 +121,43 @@ float3 ProceduralSubpixelLED(float2 ledUV, float3 inputColor)
         // ============================================================
         // ── Honeycomb Triangle (ハニカム三角形配置) ──
         //
-        // 六角格子アスペクト補正:
-        //   Y 軸を 2/sqrt(3) ≈ 1.1547 で拡大し、
-        //   各セルの実効高さを sqrt(3)/2 ≈ 0.866 に圧縮。
-        //   これにより六角格子の行間隔に近い比率になる。
-        //
-        // ドット配置:
-        //   セル内で RGB 3 ドットが正三角形を形成。
-        //   底辺 0.5、高さ sqrt(3)/4 ≈ 0.433。
-        //   偶数行: ▽ (R 左上, B 右上, G 中央下)
-        //   奇数行: △ (R 左下, B 右下, G 中央上) + X 0.5 オフセット
-        //
-        //   隣接セルのドットが視覚的に蜂の巣パターンを形成。
+        // RGB を矩形セル内の上下に固定せず、全体を三角格子として扱う。
+        // 各行は半ピッチずつずれ、色は (column - row) mod 3 で循環する。
+        // これにより任意の水平帯にも RGB が均等に含まれ、縮小時の
+        // インターレース状の色偏りを抑える。
         // ============================================================
 
-        // Hex aspect correction
-        float2 hexUV = ledUV;
-        hexUV.y *= 1.1547005; // 2.0 / sqrt(3.0)
+        float dotPitch = 0.5;
+        float rowHeight = dotPitch * 0.8660254; // sqrt(3) / 2
+        float sr = dotRadius * dotPitch * 0.44;
 
-        float row = floor(hexUV.y);
-        float isOddRow = step(0.25, frac(row * 0.5));
-        hexUV.x += isOddRow * 0.5;
+        sdf = float3(10000.0, 10000.0, 10000.0);
+        sdfUV = ledUV;
 
-        float2 cellUV = frac(hexUV);
-        sdfUV = hexUV;
+        float nearestRow = floor(ledUV.y / rowHeight + 0.5);
 
-        // 正三角形の頂点座標 (セル中央配置)
-        // base = 0.5, height = sqrt(3)/4 ≈ 0.433
-        // Y 範囲: [0.5 - 0.217, 0.5 + 0.217] = [0.283, 0.717]
-        float yTop = 0.283;
-        float yBot = 0.717;
+        [unroll]
+        for (int y = -1; y <= 1; y++)
+        {
+            float row = nearestRow + (float)y;
+            float rowOffset = PositiveModulo(row, 2.0) * 0.5;
+            float nearestColumn = floor(ledUV.x / dotPitch - rowOffset + 0.5);
 
-        // 偶数行 ▽: R(左上) B(右上) G(中央下)
-        // 奇数行 △: R(左下) B(右下) G(中央上)
-        float2 cR = float2(0.25, lerp(yTop, yBot, isOddRow));
-        float2 cG = float2(0.50, lerp(yBot, yTop, isOddRow));
-        float2 cB = float2(0.75, lerp(yTop, yBot, isOddRow));
-
-        // ドット半径: 最大 dotRadius=1.0 で sr=0.22
-        // ドット境界: yTop - sr = 0.063, 1.0 - yBot - sr = 0.063 → セル内に収まる
-        float sr = dotRadius * 0.22;
-
-        sdf.x = SDFCircle(cellUV, cR, sr);
-        sdf.y = SDFCircle(cellUV, cG, sr);
-        sdf.z = SDFCircle(cellUV, cB, sr);
+            [unroll]
+            for (int x = -1; x <= 1; x++)
+            {
+                float column = nearestColumn + (float)x;
+                float2 center = float2((column + rowOffset) * dotPitch,
+                                      row * rowHeight);
+                float colorIndex = PositiveModulo(column - row, 3.0);
+                AccumulateHoneycombDot(ledUV, center, colorIndex, sr, sdf);
+            }
+        }
 
         centerDist = saturate(-sdf / max(sr, 0.001));
 
-        // エネルギー補償: 各ドットがセルの 1/3 を担当
-        // comp = (1/3) / (π × sr²) → ドット面積に反比例
-        energyComp = min((1.0 / 3.0) / max(3.14159265 * sr * sr, 0.001), 20.0);
+        // エネルギー補償: 三角格子内の各色の平均面積が 1/3 になるよう補正。
+        energyComp = min((dotPitch * rowHeight) / max(3.14159265 * sr * sr, 0.001), 20.0);
     }
     else if (pattern == 2)
     {
