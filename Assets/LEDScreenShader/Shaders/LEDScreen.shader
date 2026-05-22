@@ -611,7 +611,7 @@ Shader "llcheesell/LEDScreen"
                     }
                 }
 
-                float3 ambientDiffuse = EvaluateAmbientProbe(normalWS) * diffuseAlbedo * ao;
+                float3 ambientDiffuse = diffuseAlbedo * ao * 0.03;
                 float3 finalColor = directLighting + ambientDiffuse + emission;
                 return float4(finalColor, baseColor.a);
             }
