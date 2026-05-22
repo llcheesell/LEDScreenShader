@@ -581,7 +581,7 @@ Shader "llcheesell/LEDScreen"
                 float3x3 tangentToWorld = float3x3(tangentWS, bitangentWS, normalBaseWS);
                 float3 normalWS = normalize(mul(normalTS, tangentToWorld));
 
-                float3 viewDir = GetWorldSpaceNormalizeViewDir(input.positionRWS);
+                float3 viewDir = LEDScreenGetWorldSpaceNormalizeViewDir(input.positionRWS);
                 float NdotV = max(saturate(dot(normalWS, viewDir)), 1e-4);
 
                 float3 specColor = lerp(float3(0.04, 0.04, 0.04), baseColor.rgb, metallic);

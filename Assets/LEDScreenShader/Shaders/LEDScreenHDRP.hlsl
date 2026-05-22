@@ -14,7 +14,104 @@
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Common.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/Packing.hlsl"
 #include "Packages/com.unity.render-pipelines.core/ShaderLibrary/BSDF.hlsl"
-#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesFunctions.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition-config/Runtime/ShaderConfig.cs.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/TextureXR.hlsl"
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesGlobal.hlsl"
+
+#if defined(USING_STEREO_MATRICES)
+    #define _WorldSpaceCameraPos _XRWorldSpaceCameraPos[unity_StereoEyeIndex].xyz
+#else
+    #define _WorldSpaceCameraPos _WorldSpaceCameraPos_Internal.xyz
+#endif
+
+#ifndef DOTS_INSTANCING_ON
+CBUFFER_START(UnityPerDraw)
+    float4x4 unity_ObjectToWorld;
+    float4x4 unity_WorldToObject;
+    float4 unity_LODFade;
+    float4 unity_WorldTransformParams;
+    float4 unity_RenderingLayer;
+    float4 unity_LightmapST;
+    float4 unity_DynamicLightmapST;
+    float4 unity_SHAr;
+    float4 unity_SHAg;
+    float4 unity_SHAb;
+    float4 unity_SHBr;
+    float4 unity_SHBg;
+    float4 unity_SHBb;
+    float4 unity_SHC;
+    float4 unity_RendererBounds_Min;
+    float4 unity_RendererBounds_Max;
+    float4 unity_ProbeVolumeParams;
+    float4x4 unity_ProbeVolumeWorldToObject;
+    float4 unity_ProbeVolumeSizeInv;
+    float4 unity_ProbeVolumeMin;
+    float4 unity_ProbesOcclusion;
+    float4x4 unity_MatrixPreviousM;
+    float4x4 unity_MatrixPreviousMI;
+    float4 unity_MotionVectorsParams;
+CBUFFER_END
+#endif
+
+CBUFFER_START(UnityPerDrawRare)
+    float4x4 glstate_matrix_transpose_modelview0;
+CBUFFER_END
+
+float4x4 LEDScreenApplyCameraTranslationToMatrix(float4x4 modelMatrix)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    modelMatrix._m03_m13_m23 -= _WorldSpaceCameraPos.xyz;
+#endif
+    return modelMatrix;
+}
+
+float4x4 LEDScreenApplyCameraTranslationToInverseMatrix(float4x4 inverseModelMatrix)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    float4x4 translationMatrix = {
+        1.0, 0.0, 0.0, _WorldSpaceCameraPos.x,
+        0.0, 1.0, 0.0, _WorldSpaceCameraPos.y,
+        0.0, 0.0, 1.0, _WorldSpaceCameraPos.z,
+        0.0, 0.0, 0.0, 1.0
+    };
+    return mul(inverseModelMatrix, translationMatrix);
+#else
+    return inverseModelMatrix;
+#endif
+}
+
+#ifndef DOTS_INSTANCING_ON
+float4x4 LEDScreenGetRawUnityObjectToWorld()     { return unity_ObjectToWorld; }
+float4x4 LEDScreenGetRawUnityWorldToObject()     { return unity_WorldToObject; }
+float4x4 LEDScreenGetRawUnityPrevObjectToWorld() { return unity_MatrixPreviousM; }
+float4x4 LEDScreenGetRawUnityPrevWorldToObject() { return unity_MatrixPreviousMI; }
+
+#define UNITY_MATRIX_M        LEDScreenApplyCameraTranslationToMatrix(LEDScreenGetRawUnityObjectToWorld())
+#define UNITY_MATRIX_I_M      LEDScreenApplyCameraTranslationToInverseMatrix(LEDScreenGetRawUnityWorldToObject())
+#define UNITY_PREV_MATRIX_M   LEDScreenApplyCameraTranslationToMatrix(LEDScreenGetRawUnityPrevObjectToWorld())
+#define UNITY_PREV_MATRIX_I_M LEDScreenApplyCameraTranslationToInverseMatrix(LEDScreenGetRawUnityPrevWorldToObject())
+#endif
+
+#include "Packages/com.unity.render-pipelines.high-definition/Runtime/ShaderLibrary/ShaderVariablesMatrixDefsHDCamera.hlsl"
+#include "Packages/com.unity.render-pipelines.core/ShaderLibrary/SpaceTransforms.hlsl"
+
+float3 LEDScreenGetCurrentViewPosition()
+{
+#if (defined(SHADERPASS) && (SHADERPASS != SHADERPASS_SHADOWS))
+    return _WorldSpaceCameraPos;
+#else
+    return UNITY_MATRIX_I_V._14_24_34;
+#endif
+}
+
+float3 LEDScreenGetWorldSpaceNormalizeViewDir(float3 positionRWS)
+{
+#if (SHADEROPTIONS_CAMERA_RELATIVE_RENDERING != 0)
+    return normalize(-positionRWS);
+#else
+    return normalize(LEDScreenGetCurrentViewPosition() - positionRWS);
+#endif
+}
 
 // ============================================================================
 // Pipeline Abstraction Macros
