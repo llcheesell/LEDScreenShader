@@ -156,14 +156,16 @@ void ApplyCabinetGrid(
     float2 cabinetTiling = float2(_CabinetColumns, _CabinetRows);
     float2 cabinetUV = frac(uv * cabinetTiling);
 
-    // Seam mask: edges of each cabinet cell
-    float2 edgeMask = step(1.0 - _CabinetSeamWidth, cabinetUV) +
-                      step(cabinetUV, _CabinetSeamWidth.xx);
-    float seam = saturate(edgeMask.x + edgeMask.y);
+    // Anti-aliased seam mask at the edges of each cabinet cell.
+    // Avoid deriving a hard step mask; it creates large normal spikes that shimmer under PBR lighting.
+    float2 edgeDistance = min(cabinetUV, 1.0 - cabinetUV);
+    float2 seamAA = max(fwidth(cabinetUV) * 1.5, 1e-4);
+    float2 seamMask = 1.0 - smoothstep(_CabinetSeamWidth.xx, _CabinetSeamWidth.xx + seamAA, edgeDistance);
+    float seam = saturate(max(seamMask.x, seamMask.y));
 
-    // Normal perturbation at seam edges (bevel effect)
-    float2 seamGradient = float2(ddx(seam), ddy(seam)) * _CabinetSeamDepth * 10.0;
-    normalTS.xy += seamGradient;
+    // Soft finite bevel. This keeps cabinet seams visible without producing specular aliasing.
+    float2 edgeDirection = lerp(1.0.xx, -1.0.xx, step(0.5.xx, cabinetUV));
+    normalTS.xy += seamMask * edgeDirection * (_CabinetSeamDepth * 0.08);
     normalTS = normalize(normalTS);
 
     // Per-cabinet brightness variance (deterministic hash)

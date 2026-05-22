@@ -563,23 +563,29 @@ Shader "llcheesell/LEDScreen"
 
                 float2 baseTexUV = GetBaseUV(input.uv);
                 float4 baseColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, baseTexUV) * _BaseColor;
+                float baseUVFootprint = max(length(ddx(baseTexUV)), length(ddy(baseTexUV)));
+                float pbrDetailFade = saturate(max(fade, smoothstep(0.08, 0.35, baseUVFootprint)));
 
                 float3 normalMapVal = UnpackNormal(SAMPLE_TEXTURE2D(_NormalMap, sampler_NormalMap, baseTexUV));
-                normalTS.xy += normalMapVal.xy * _NormalStrength;
+                normalTS.xy += normalMapVal.xy * _NormalStrength * (1.0 - pbrDetailFade);
                 normalTS = normalize(normalTS);
 
                 float4 maskMap = SAMPLE_TEXTURE2D(_MaskMap, sampler_MaskMap, baseTexUV);
                 float metallic = maskMap.r * _Metallic;
                 float ao = lerp(1.0, maskMap.g, _OcclusionStrength);
-                float smoothness = maskMap.a * _Smoothness;
+                float smoothness = lerp(maskMap.a * _Smoothness, min(maskMap.a * _Smoothness, 0.18), pbrDetailFade);
                 float perceptualRoughness = saturate(1.0 - smoothness);
-                float roughness = max(perceptualRoughness * perceptualRoughness, 0.001);
 
                 float3 tangentWS = normalize(input.tangentWS.xyz);
                 float3 normalBaseWS = normalize(input.normalWS);
                 float3 bitangentWS = input.tangentWS.w * normalize(cross(normalBaseWS, tangentWS));
                 float3x3 tangentToWorld = float3x3(tangentWS, bitangentWS, normalBaseWS);
                 float3 normalWS = normalize(mul(normalTS, tangentToWorld));
+
+                float normalVariance = max(dot(ddx(normalWS), ddx(normalWS)), dot(ddy(normalWS), ddy(normalWS)));
+                float specularAA = saturate(normalVariance * 2.0);
+                perceptualRoughness = max(perceptualRoughness, lerp(0.28, 0.65, specularAA));
+                float roughness = max(perceptualRoughness * perceptualRoughness, 0.05);
 
                 float3 viewDir = LEDScreenGetWorldSpaceNormalizeViewDir(input.positionRWS);
                 float NdotV = max(saturate(dot(normalWS, viewDir)), 1e-4);
@@ -602,12 +608,11 @@ Shader "llcheesell/LEDScreen"
                         float NdotH = saturate(dot(normalWS, halfDir));
                         float LdotH = saturate(dot(lightDir, halfDir));
 
-                        float D = D_GGX(NdotH, roughness);
-                        float V = V_SmithJointGGX(NdotL, NdotV, roughness);
+                        float DV = DV_SmithJointGGX(NdotH, NdotL, NdotV, roughness);
                         float3 F = specColor + (1.0 - specColor) * pow(1.0 - LdotH, 5.0);
 
-                        float3 diffuse = diffuseAlbedo * INV_PI * lightData.diffuseDimmer;
-                        float3 specular = D * V * F * lightData.specularDimmer;
+                        float3 diffuse = diffuseAlbedo * INV_PI * lightData.diffuseDimmer * 0.2;
+                        float3 specular = DV * F * lightData.specularDimmer * ao * 0.05;
                         directLighting += (diffuse + specular) * lightData.color * lightData.lightDimmer * NdotL;
                     }
                 }
