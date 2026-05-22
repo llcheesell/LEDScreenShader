@@ -18,6 +18,8 @@ Material:
   - _DISABLE_DECALS
   - _DISABLE_SSR_TRANSPARENT
   - _ENABLE_FOG_ON_TRANSPARENT
+  - _INVALIDATEMOTIONVECTORS_ON
+  - _PROCEDURALLEDENABLED_ON
   - _SURFACEUVLINKLED_ON
   - _SURFACE_TYPE_TRANSPARENT
   - _UV_UV0
@@ -153,6 +155,7 @@ Material:
     - _AlphaSrcBlend: 1
     - _AlphaToMask: 0
     - _AlphaToMaskInspectorValue: 0
+    - _BaseMaterialEnabled: 0
     - _BlendMode: 0
     - _CabinetBrightnessVariance: 0
     - _CabinetColumns: 10
@@ -163,6 +166,7 @@ Material:
     - _ConservativeDepthOffsetEnable: 0
     - _CullMode: 2
     - _CullModeForward: 2
+    - _DebugFadeVis: 0
     - _DepthOffsetEnable: 0
     - _DistantFadeEnd: 15
     - _DistantFadeStart: 3
@@ -173,13 +177,24 @@ Material:
     - _EnableBlendModePreserveSpecularLighting: 0
     - _EnableFogOnTransparent: 1
     - _ExcludeFromTUAndAA: 0
+    - _FadeBias: 1
+    - _FadeEnd: 1
+    - _FadeStart: 0.2
     - _IntensityMultiplier: 1.5
-    - _LEDTilingX: 100
-    - _LEDTilingY: 56
+    - _InvalidateMotionVectors: 1
+    - _LEDTilingX: 300
+    - _LEDTilingY: 300
     - _Metallic: 0.976
     - _NormalStrength: 1
     - _OcclusionStrength: 1
     - _OpaqueCullMode: 2
+    - _ProceduralDotRadius: 0.8
+    - _ProceduralGlowIntensity: 0.15
+    - _ProceduralGlowRadius: 0.1
+    - _ProceduralHighlightStrength: 0.5
+    - _ProceduralHotspotStrength: 0.3
+    - _ProceduralLEDEnabled: 1
+    - _ProceduralLEDPattern: 0
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RayTracing: 0
@@ -231,6 +246,7 @@ Material:
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
     - _LEDTiling: {r: 100, g: 56, b: 0, a: 0}
   m_BuildTextureStacks: []
+  m_AllowLocking: 1
 --- !u!114 &853549948551334953
 MonoBehaviour:
   m_ObjectHideFlags: 11
