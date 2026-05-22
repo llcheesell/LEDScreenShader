@@ -81,7 +81,7 @@ GitHubパッケージの更新後にMissing Shaderになったマテリアルも
 LEDの発光パターンを指定します。R/G/Bチャンネルがそれぞれサブピクセルのマスクとして機能します。
 * **Procedural LED** — Generates LED layouts procedurally without a texture.<br>
 テクスチャを使わず、シェーダー内でLED配列を生成します。
-* **LED Tiling** (`_LEDTiling`) — Number of LED tiles in X/Y.<br>
+* **LED Columns / Rows** (`_LEDTilingX`, `_LEDTilingY`) — Number of LED tiles in X/Y.<br>
 LEDパターンのタイリング数を設定します。
 
 **Brightness**
