@@ -1,1 +1,6 @@
+/.gitattributes text eol=lf
 *.gif filter=lfs diff=lfs merge=lfs -text
+*.shader text eol=lf
+*.hlsl text eol=lf
+*.cginc text eol=lf
+*.compute text eol=lf
