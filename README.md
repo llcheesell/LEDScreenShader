@@ -90,9 +90,9 @@ LEDパターンのタイリング数を設定します。
 
 **Distant Fader**
 
-* **Distant Fade Start/End** (`_DistantFadeStart`, `_DistantFadeEnd`) — Distance range where LED detail fades to reduce moire.<br>
-カメラ距離に応じてLEDディテールをフェードし、モアレを抑制します。
-* **Distant Fade Brightness** (`_DistantFadeBrightness`) — Brightness compensation applied while LED detail is faded.
+* **Distant Fade Start/End** (`_FadeStart`, `_FadeEnd`) — Screen-space density range where LED detail fades to reduce moire.<br>
+スクリーンスペース密度に応じてLEDディテールをフェードし、モアレを抑制します。
+* **Distant Fade Bias** (`_FadeBias`) — Fade curve exponent (`<1` = early blend, `>1` = delayed blend) while LED detail is faded.
 
 **Cabinet Grid**
 
