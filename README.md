@@ -49,6 +49,24 @@ HDRP / URPではUnity 2021およびUnity 6000.3.15で動作確認しています
 3. Select an LED texture or procedural LED pattern.
 4. Adjust **Intensity Multiplier** based on the scene exposure and bloom settings.
 
+## Offline Documentation
+
+The Asset Store package includes **Documentation/LEDScreenShader_Start_Guide.pdf**. It contains a numbered English start guide, setup steps, shader property reference, migration notes, troubleshooting, and a Japanese quick guide.
+
+## Migration
+
+Version 2.0 replaces the previous Shader Graph implementation with the native shader `llcheesell/LEDScreen`.
+
+If legacy Shader Graph materials are found, LEDScreenShader shows a migration prompt in the Unity Editor. You can also run the migration manually from **Tools > LEDScreenShader > Migrate Legacy Materials to Native Shader**.
+
+The migration tool detects materials that still reference the previous Shader Graph shaders, including materials that appear as Missing Shader after updating from the GitHub package. The old input/video texture is assigned to **Input Screen Texture** (`_InputTex`). Compatible LED textures, LED tiling, input texture tiling/offset, emission color, and intensity are copied to the native shader where possible.
+
+Version 2.0では、従来のShader Graph実装からネイティブシェーダー`llcheesell/LEDScreen`へ移行しています。
+
+旧Shader Graphを参照しているマテリアルが見つかった場合、Unity Editor上で移行プロンプトが表示されます。手動で実行する場合は **Tools > LEDScreenShader > Migrate Legacy Materials to Native Shader** を使用してください。
+
+GitHubパッケージの更新後にMissing Shaderになったマテリアルも、既知の旧Shader GUIDから検出して移行できます。旧Input/Videoテクスチャは **Input Screen Texture**（`_InputTex`）に割り当てます。互換性のあるLEDテクスチャ、LEDタイリング、Input TextureのTiling/Offset、Emission Color、Intensityは可能な範囲で引き継ぎます。
+
 ## Main Properties
 
 **Input**
@@ -101,8 +119,8 @@ LEDパターンのタイリング数を設定します。
 * Built-in Render Pipeline is not officially supported. The included fallback shader is intended only as a simplified compatibility path.<br>
 Built-in Render Pipelineは公式サポート対象外です。同梱のFallbackシェーダーは簡易互換用として扱ってください。
 
-* Legacy Shader Graph files are preserved in `Shaders/Legacy/` for reference only. The main supported shader is `llcheesell/LEDScreen`.<br>
-旧Shader Graphファイルは参考用として`Shaders/Legacy/`に残しています。現在の主なサポート対象は`llcheesell/LEDScreen`です。
+* The previous Shader Graph implementation is not included in the main package. The supported shader is `llcheesell/LEDScreen`.<br>
+旧Shader Graph実装はメインパッケージには含めていません。現在のサポート対象は`llcheesell/LEDScreen`です。
 
 ## License
 
