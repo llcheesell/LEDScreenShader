@@ -97,7 +97,7 @@ LEDパターンのタイリング数を設定します。
 **Cabinet Grid**
 
 * **Cabinet Grid Enabled** (`_CabinetGridEnabled`) — Toggles cabinet seam rendering.
-* **Cabinet Tiling** (`_CabinetTiling`) — Number of cabinet modules in X/Y.
+* **Cabinet Columns / Rows** (`_CabinetColumns`, `_CabinetRows`) — Number of cabinet modules in X/Y.
 * **Cabinet Seam Width/Depth** — Controls seam width and indentation strength.
 * **Cabinet Brightness Variance** — Adds subtle luminance variation per cabinet.
 
