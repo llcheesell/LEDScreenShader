@@ -387,6 +387,11 @@ Shader "llcheesell/LEDScreen"
     // ========================================================================
     SubShader
     {
+        PackageRequirements
+        {
+            "com.unity.render-pipelines.universal"
+        }
+
         Tags
         {
             "RenderPipeline" = "UniversalPipeline"
@@ -464,6 +469,11 @@ Shader "llcheesell/LEDScreen"
     // ========================================================================
     SubShader
     {
+        PackageRequirements
+        {
+            "com.unity.render-pipelines.high-definition"
+        }
+
         Tags
         {
             "RenderPipeline" = "HDRenderPipeline"
