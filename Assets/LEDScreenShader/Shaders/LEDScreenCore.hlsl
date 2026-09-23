@@ -135,7 +135,73 @@ float4 ComputeSubpixelLED(float2 inputUV, float2 ledUV, float fade)
     // 輝度 + エミッションカラーティント
     ledColor *= intensity * _EmissionColor.rgb;
 
-    return float4(ledColor, 1.0);
+    // .a は入力テクスチャのアルファ（Alpha Source = Input Texture Alpha で使用）
+    return float4(ledColor, inputColor.a);
+}
+
+// ============================================================================
+// Transparency (Surface Type / Blend Mode / Alpha Source)
+// ============================================================================
+//
+// _LEDSurfaceType:  0 = Opaque, 1 = Transparent
+// _LEDBlendMode:    0 = Alpha    (Blend One OneMinusSrcAlpha, RGB はシェーダー内で乗算済み)
+//                1 = Additive (Blend One One, RGB にアルファを乗算して加算)
+// _LEDAlphaSource:  0 = None (Opacity のみ)
+//                1 = Input Texture Alpha (映像入力と同じテクスチャの A チャンネル)
+//                2 = Alpha Map (独自テクスチャの指定チャンネル)
+//
+// ブレンドステート (_LEDSrcBlend / _LEDDstBlend / _LEDZWrite / _LEDZTestForwardHDRP) は
+// ShaderGUI が Surface Type / Blend Mode から自動設定する。
+// ============================================================================
+
+bool IsTransparentSurface()
+{
+    return _LEDSurfaceType > 0.5;
+}
+
+bool IsAdditiveBlend()
+{
+    return _LEDSurfaceType > 0.5 && _LEDBlendMode > 0.5;
+}
+
+float ComputeScreenAlpha(float2 uv, float inputAlpha)
+{
+    UNITY_BRANCH
+    if (!IsTransparentSurface()) return 1.0;
+
+    float alpha = 1.0;
+
+    UNITY_BRANCH
+    if (_LEDAlphaSource > 1.5)
+    {
+        // Alpha Map: Input Texture の Tiling/Offset に追従するか、独自の Tiling/Offset を使う
+        float2 alphaUV = (_LEDAlphaMapUseInputUV > 0.5)
+            ? GetInputUV(uv)
+            : uv * _LEDAlphaMap_ST.xy + _LEDAlphaMap_ST.zw;
+        float4 alphaMap = SAMPLE_TEXTURE2D(_LEDAlphaMap, sampler_LEDAlphaMap, alphaUV);
+        float4 channelMask = step(abs(float4(0.0, 1.0, 2.0, 3.0) - _LEDAlphaMapChannel), 0.5);
+        alpha = dot(alphaMap, channelMask);
+    }
+    else if (_LEDAlphaSource > 0.5)
+    {
+        alpha = inputAlpha;
+    }
+
+    if (_LEDAlphaSource > 0.5 && _LEDAlphaInvert > 0.5)
+        alpha = 1.0 - alpha;
+
+    return saturate(alpha * _LEDOpacity);
+}
+
+// 最終出力。Opaque はアルファ 1 固定。
+// Transparent は RGB にアルファを乗算（プリマルチプライド）して返す。
+// Additive はレンダーターゲットのアルファを変えないよう A=0 を出力する。
+float4 ApplyBlendOutput(float3 color, float alpha)
+{
+    if (!IsTransparentSurface()) return float4(color, 1.0);
+
+    color *= alpha;
+    return float4(color, IsAdditiveBlend() ? 0.0 : alpha);
 }
 
 // ============================================================================

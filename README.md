@@ -75,6 +75,20 @@ GitHubパッケージの更新後にMissing Shaderになったマテリアルも
 パネルに表示するテクスチャ、またはRenderTextureを指定します。
 * **Input Tiling/Offset** (`_InputTex_ST`) — Tiling and offset for the input texture.
 
+**Surface Options**
+
+* **Surface Type** (`_LEDSurfaceType`) — `Opaque` (default, previous behavior) or `Transparent`.<br>
+不透明（従来動作）か透過かを選択します。
+* **Blend Mode** (`_LEDBlendMode`) — `Alpha` (alpha blending) or `Additive` (additive blending; black is transparent).<br>
+透過時の合成方法。Alpha はアルファブレンド、Additive は加算合成です。
+* **Alpha Source** (`_LEDAlphaSource`) — `None` (Opacity only), `Input Texture Alpha` (alpha channel of the Input Texture), or `Alpha Map`.<br>
+アルファの取得元。映像入力のAチャンネル、または独自のアルファマップを使用できます。
+* **Alpha Map** (`_LEDAlphaMap`, `_LEDAlphaMapChannel`, `_LEDAlphaMapUseInputUV`) — Custom alpha texture, the channel to read (R/G/B/A), and whether it follows the Input Texture tiling/offset.<br>
+アルファマップのテクスチャ、読み取るチャンネル、Input Textureと同じTiling/Offsetに追従するかを指定します。
+* **Invert Alpha / Opacity** (`_LEDAlphaInvert`, `_LEDOpacity`) — Inverts the alpha source and multiplies the final alpha.
+* Blend state, render queue, and depth/shadow/motion-vector passes are configured automatically by the material inspector. Transparent materials do not write depth, cast shadows, or output motion vectors.<br>
+ブレンドステート、Render Queue、深度/影/モーションベクターパスはマテリアルインスペクターが自動設定します。透過時は深度書き込み・影・モーションベクターを出力しません。
+
 **LED**
 
 * **LED Texture** (`_LEDTex`) — RGB subpixel mask texture. R/G/B channels define which subpixel areas light up.<br>

@@ -28,6 +28,7 @@ sampler2D _LEDTex;
 sampler2D _BaseMap;
 sampler2D _NormalMap;
 sampler2D _MaskMap;
+sampler2D _LEDAlphaMap;
 
 // ============================================================================
 // Material properties
@@ -35,6 +36,16 @@ sampler2D _MaskMap;
 
 // Input Screen
 float4 _InputTex_ST;        // auto-generated from texture Tiling/Offset
+
+// Surface Options (Opaque / Transparent)
+float  _LEDSurfaceType;      // 0=Opaque, 1=Transparent
+float  _LEDBlendMode;        // 0=Alpha, 1=Additive
+float  _LEDAlphaSource;      // 0=None, 1=Input Texture Alpha, 2=Alpha Map
+float4 _LEDAlphaMap_ST;      // auto-generated from texture Tiling/Offset
+float  _LEDAlphaMapChannel;  // 0=R, 1=G, 2=B, 3=A
+float  _LEDAlphaMapUseInputUV;  // toggle: Input Texture と同じ UV を使う
+float  _LEDAlphaInvert;      // toggle: アルファ反転
+float  _LEDOpacity;
 
 // LED Subpixel
 float  _LEDTilingX;

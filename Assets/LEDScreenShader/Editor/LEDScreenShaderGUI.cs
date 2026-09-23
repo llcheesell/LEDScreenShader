@@ -1,5 +1,6 @@
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Llcheesell.LEDScreenShader.Editor
 {
@@ -14,6 +15,7 @@ public class LEDScreenShaderGUI : ShaderGUI
     // Foldout state kept in static fields across inspector redraws.
     // ========================================================================
     static bool _foldInputScreen     = true;
+    static bool _foldSurfaceOptions  = true;
     static bool _foldLEDSubpixel     = true;
     static bool _foldProceduralLED   = true;
     static bool _foldEmission        = true;
@@ -28,6 +30,9 @@ public class LEDScreenShaderGUI : ShaderGUI
     // ========================================================================
     public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
     {
+        // Surface Type / Blend Mode の変更をブレンドステートへ反映するため、全体を監視する
+        EditorGUI.BeginChangeCheck();
+
         // ----------------------------------------------------------------
         // Input Screen
         // ----------------------------------------------------------------
@@ -40,6 +45,11 @@ public class LEDScreenShaderGUI : ShaderGUI
             materialEditor.TextureScaleOffsetProperty(inputTex);
             EditorGUI.indentLevel -= 2;
         });
+
+        // ----------------------------------------------------------------
+        // Surface Options (Opaque / Transparent)
+        // ----------------------------------------------------------------
+        DrawSurfaceOptionsSection(materialEditor, properties);
 
         // ----------------------------------------------------------------
         // LED Subpixel
@@ -132,6 +142,143 @@ public class LEDScreenShaderGUI : ShaderGUI
             materialEditor.ShaderProperty(FindProp("_DebugFadeVis", properties),
                 new GUIContent("Fade Visualization",
                     "青=フェードなし  緑=遷移中  赤=完全フェード"));
+        });
+
+        if (EditorGUI.EndChangeCheck())
+        {
+            foreach (Object target in materialEditor.targets)
+            {
+                Material material = target as Material;
+                if (material != null) SetupMaterialBlendState(material);
+            }
+        }
+    }
+
+    // ========================================================================
+    // Material setup
+    // ========================================================================
+    public override void AssignNewShaderToMaterial(Material material, Shader oldShader, Shader newShader)
+    {
+        base.AssignNewShaderToMaterial(material, oldShader, newShader);
+        SetupMaterialBlendState(material);
+    }
+
+#if UNITY_2021_2_OR_NEWER
+    public override void ValidateMaterial(Material material)
+    {
+        SetupMaterialBlendState(material);
+    }
+#endif
+
+    static readonly string[] k_OpaqueOnlyPasses =
+    {
+        "DepthOnly", "DepthForwardOnly", "ShadowCaster", "MotionVectors",
+    };
+
+    /// <summary>
+    /// Surface Type / Blend Mode からブレンドステート、Render Queue、
+    /// RenderType タグ、深度系パスの有効/無効を設定する。
+    /// Opaque のマテリアルは既定値のままなので、既存マテリアルに差分は発生しない。
+    /// </summary>
+    public static void SetupMaterialBlendState(Material material)
+    {
+        if (material == null || !material.HasProperty("_LEDSurfaceType")) return;
+
+        bool transparent = material.GetFloat("_LEDSurfaceType") > 0.5f;
+        bool additive = transparent && material.GetFloat("_LEDBlendMode") > 0.5f;
+
+        // RGB はシェーダー内でアルファ乗算済み（プリマルチプライド）
+        BlendMode dstBlend = !transparent ? BlendMode.Zero
+                           : additive     ? BlendMode.One
+                                          : BlendMode.OneMinusSrcAlpha;
+        SetFloatIfChanged(material, "_LEDSrcBlend", (float)BlendMode.One);
+        SetFloatIfChanged(material, "_LEDDstBlend", (float)dstBlend);
+        SetFloatIfChanged(material, "_LEDZWrite", transparent ? 0f : 1f);
+        // HDRP: Opaque は DepthForwardOnly と一致したピクセルのみ描画 (Equal)。
+        // Transparent は深度プリパスが描かれないため LessEqual。
+        SetFloatIfChanged(material, "_LEDZTestForwardHDRP",
+            (float)(transparent ? CompareFunction.LessEqual : CompareFunction.Equal));
+
+        material.SetOverrideTag("RenderType", transparent ? "Transparent" : "");
+
+        // 透過時は深度・影・モーションベクター（TAA ゴースト対策）パスを無効化
+        foreach (string pass in k_OpaqueOnlyPasses)
+        {
+            if (material.GetShaderPassEnabled(pass) == transparent)
+                material.SetShaderPassEnabled(pass, !transparent);
+        }
+
+        // Render Queue: 範囲外のときだけ補正し、ユーザー指定の値は尊重する
+        int queue = material.renderQueue;
+        if (transparent && queue <= (int)RenderQueue.GeometryLast)
+            material.renderQueue = (int)RenderQueue.Transparent;
+        else if (!transparent && queue > (int)RenderQueue.GeometryLast)
+            material.renderQueue = -1;
+    }
+
+    static void SetFloatIfChanged(Material material, string name, float value)
+    {
+        if (!material.HasProperty(name)) return;
+        if (!Mathf.Approximately(material.GetFloat(name), value))
+            material.SetFloat(name, value);
+    }
+
+    // ========================================================================
+    // Surface Options
+    // ========================================================================
+    void DrawSurfaceOptionsSection(MaterialEditor materialEditor, MaterialProperty[] properties)
+    {
+        _foldSurfaceOptions = Section("Surface Options", _foldSurfaceOptions, () =>
+        {
+            MaterialProperty surfaceType = FindProp("_LEDSurfaceType", properties);
+            materialEditor.ShaderProperty(surfaceType, new GUIContent("Surface Type",
+                "Opaque: 不透明（従来動作）\n" +
+                "Transparent: アルファ合成 / 加算合成"));
+
+            bool transparent = surfaceType.hasMixedValue || surfaceType.floatValue > 0.5f;
+            if (!transparent) return;
+
+            materialEditor.ShaderProperty(FindProp("_LEDBlendMode", properties), new GUIContent("Blend Mode",
+                "Alpha: アルファブレンド（背景を隠す）\n" +
+                "Additive: 加算合成（黒は透明、アルファは明るさとして作用）"));
+
+            EditorGUILayout.Space(2);
+            MaterialProperty alphaSource = FindProp("_LEDAlphaSource", properties);
+            materialEditor.ShaderProperty(alphaSource, new GUIContent("Alpha Source",
+                "None: Opacity のみ\n" +
+                "Input Texture Alpha: Input Screen Texture の A チャンネル\n" +
+                "Alpha Map: 独自のアルファマップテクスチャ"));
+
+            bool useAlphaMap = alphaSource.hasMixedValue || alphaSource.floatValue > 1.5f;
+            if (useAlphaMap)
+            {
+                EditorGUI.indentLevel++;
+                MaterialProperty alphaMap = FindProp("_LEDAlphaMap", properties);
+                materialEditor.TexturePropertySingleLine(new GUIContent("Alpha Map"), alphaMap);
+                materialEditor.ShaderProperty(FindProp("_LEDAlphaMapChannel", properties), "Channel");
+
+                MaterialProperty useInputUV = FindProp("_LEDAlphaMapUseInputUV", properties);
+                materialEditor.ShaderProperty(useInputUV, new GUIContent("Use Input UV",
+                    "有効: Input Screen Texture の Tiling/Offset に追従\n" +
+                    "無効: Alpha Map 独自の Tiling/Offset を使用"));
+                if (useInputUV.hasMixedValue || useInputUV.floatValue < 0.5f)
+                {
+                    EditorGUI.indentLevel += 2;
+                    materialEditor.TextureScaleOffsetProperty(alphaMap);
+                    EditorGUI.indentLevel -= 2;
+                }
+                EditorGUI.indentLevel--;
+            }
+
+            using (new EditorGUI.DisabledScope(!alphaSource.hasMixedValue && alphaSource.floatValue < 0.5f))
+            {
+                materialEditor.ShaderProperty(FindProp("_LEDAlphaInvert", properties), "Invert Alpha");
+            }
+            materialEditor.ShaderProperty(FindProp("_LEDOpacity", properties), "Opacity");
+
+            EditorGUILayout.HelpBox(
+                "Transparent では深度・影・モーションベクター（TAA ゴースト対策）パスを無効化します。",
+                MessageType.Info);
         });
     }
 

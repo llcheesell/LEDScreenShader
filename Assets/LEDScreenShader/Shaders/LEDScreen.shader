@@ -10,6 +10,34 @@ Shader "llcheesell/LEDScreen"
         _InputTex         ("Input Screen Texture", 2D)  = "white" {}
 
         // =====================================================================
+        // Surface Options (Opaque / Transparent)
+        // =====================================================================
+        [Space(10)]
+        [Header(Surface Options)]
+        [Space(5)]
+        [Enum(Opaque,0,Transparent,1)]
+        _LEDSurfaceType      ("Surface Type", Float) = 0
+        [Enum(Alpha,0,Additive,1)]
+        _LEDBlendMode        ("Blend Mode", Float) = 0
+        [Enum(None,0,Input Texture Alpha,1,Alpha Map,2)]
+        _LEDAlphaSource      ("Alpha Source", Float) = 1
+        _LEDAlphaMap         ("Alpha Map", 2D) = "white" {}
+        [Enum(R,0,G,1,B,2,A,3)]
+        _LEDAlphaMapChannel  ("Alpha Map Channel", Float) = 0
+        [Toggle]
+        _LEDAlphaMapUseInputUV ("Alpha Map Uses Input UV", Float) = 1
+        [Toggle]
+        _LEDAlphaInvert      ("Invert Alpha", Float) = 0
+        _LEDOpacity          ("Opacity", Range(0, 1)) = 1
+
+        // ブレンドステート（ShaderGUI が Surface Type / Blend Mode から自動設定）
+        [HideInInspector] _LEDSrcBlend ("__src", Float) = 1
+        [HideInInspector] _LEDDstBlend ("__dst", Float) = 0
+        [HideInInspector] _LEDZWrite   ("__zw", Float) = 1
+        // HDRP ForwardOnly 用: Opaque は DepthForwardOnly と一致させるため Equal、Transparent は LessEqual
+        [HideInInspector] _LEDZTestForwardHDRP ("__ztHDRP", Float) = 3
+
+        // =====================================================================
         // LED Subpixel
         // =====================================================================
         [Space(10)]
@@ -132,6 +160,13 @@ Shader "llcheesell/LEDScreen"
     #include "LEDScreenBuiltin.hlsl"
     #include "LEDScreenCore.hlsl"
 
+    // 加算合成時はフォグ色を黒にする（背景側で既にフォグが掛かっているため、
+    // フォグ色を加算すると二重に明るくなる）。
+    #define LED_APPLY_FOG(coord, col) \
+        UNITY_BRANCH \
+        if (IsAdditiveBlend()) { UNITY_APPLY_FOG_COLOR(coord, col, fixed4(0, 0, 0, 0)); } \
+        else { UNITY_APPLY_FOG(coord, col); }
+
     // ------------------------------------------------------------------
     // Forward pass structures + entry points
     // ------------------------------------------------------------------
@@ -197,6 +232,9 @@ Shader "llcheesell/LEDScreen"
         float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
         float3 emission  = ledResult.rgb;
 
+        // ---- Alpha (Opaque 時は常に 1) ----
+        float alpha = ComputeScreenAlpha(IN.uv, ledResult.a);
+
         // ---- Cabinet grid (emission + normal) ----
         float3 normalTS = float3(0, 0, 1);
         float emissiveScale = 1.0;
@@ -208,8 +246,8 @@ Shader "llcheesell/LEDScreen"
         if (_BaseMaterialEnabled < 0.5)
         {
             float3 finalColor = emission;
-            UNITY_APPLY_FOG(IN.fogCoord, finalColor);
-            return half4(finalColor, 1.0);
+            LED_APPLY_FOG(IN.fogCoord, finalColor);
+            return ApplyBlendOutput(finalColor, alpha);
         }
 
         // ================================================================
@@ -299,8 +337,8 @@ Shader "llcheesell/LEDScreen"
                           + indirectSpecular
                           + emission;
 
-        UNITY_APPLY_FOG(IN.fogCoord, finalColor);
-        return half4(finalColor, 1.0);
+        LED_APPLY_FOG(IN.fogCoord, finalColor);
+        return ApplyBlendOutput(finalColor, alpha);
     }
 
     // ------------------------------------------------------------------
@@ -406,6 +444,10 @@ Shader "llcheesell/LEDScreen"
             Name "ForwardLit"
             Tags { "LightMode" = "UniversalForward" }
 
+            // Opaque: One Zero / ZWrite On、Transparent: ShaderGUI が設定
+            Blend [_LEDSrcBlend] [_LEDDstBlend]
+            ZWrite [_LEDZWrite]
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -493,7 +535,11 @@ Shader "llcheesell/LEDScreen"
             // HLSLPROGRAM + HDRP インクルードにより、両パスで同一の
             // 行列変換パスを使用し、深度値の一致を保証する。
             // ShaderVariables.hlsl already provides HDRP light-loop globals.
-            ZTest Equal
+            //
+            // Transparent 時は DepthForwardOnly が描かれない（HDRP の深度プリパスは
+            // 不透明キューのみ）ため、ZTest を LessEqual に切り替える。
+            Blend [_LEDSrcBlend] [_LEDDstBlend]
+            ZTest [_LEDZTestForwardHDRP]
             ZWrite Off
 
             HLSLPROGRAM
@@ -550,6 +596,9 @@ Shader "llcheesell/LEDScreen"
                 float4 ledResult = ComputeSubpixelLED(inputUV, ledUV, fade);
                 float3 emission  = ledResult.rgb;
 
+                // Alpha (Opaque 時は常に 1)
+                float alpha = ComputeScreenAlpha(input.uv, ledResult.a);
+
                 float3 normalTS = float3(0, 0, 1);
                 float emissiveScale = 1.0;
                 ApplyCabinetGrid(input.uv, normalTS, emissiveScale);
@@ -558,7 +607,7 @@ Shader "llcheesell/LEDScreen"
                 UNITY_BRANCH
                 if (_BaseMaterialEnabled < 0.5)
                 {
-                    return float4(emission, 1.0);
+                    return ApplyBlendOutput(emission, alpha);
                 }
 
                 float2 baseTexUV = GetBaseUV(input.uv);
@@ -619,7 +668,7 @@ Shader "llcheesell/LEDScreen"
 
                 float3 ambientDiffuse = diffuseAlbedo * ao * 0.03;
                 float3 finalColor = directLighting + ambientDiffuse + emission;
-                return float4(finalColor, baseColor.a);
+                return ApplyBlendOutput(finalColor, alpha);
             }
             ENDHLSL
         }
@@ -806,6 +855,9 @@ Shader "llcheesell/LEDScreen"
         {
             Name "ForwardBase"
             Tags { "LightMode" = "ForwardBase" }
+
+            Blend [_LEDSrcBlend] [_LEDDstBlend]
+            ZWrite [_LEDZWrite]
 
             CGPROGRAM
             #pragma vertex vert
